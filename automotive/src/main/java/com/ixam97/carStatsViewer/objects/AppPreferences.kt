@@ -1,9 +1,9 @@
-package com.ixam97.carStatsViewer.objects
+package dev.boessi.carStatsViewer.objects
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.ixam97.carStatsViewer.R
-import com.ixam97.carStatsViewer.plot.PlotDimension
+import dev.boessi.carStatsViewer.R
+import dev.boessi.carStatsViewer.plot.PlotDimension
 
 class AppPreferences(context: Context) {
 

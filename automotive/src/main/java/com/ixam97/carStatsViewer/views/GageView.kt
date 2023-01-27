@@ -1,4 +1,4 @@
-package com.ixam97.carStatsViewer.views
+package dev.boessi.carStatsViewer.views
 
 import android.content.Context
 import android.graphics.*

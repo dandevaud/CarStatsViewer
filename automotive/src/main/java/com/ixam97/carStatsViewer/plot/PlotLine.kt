@@ -1,4 +1,4 @@
-package com.ixam97.carStatsViewer.plot
+package dev.boessi.carStatsViewer.plot
 
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs

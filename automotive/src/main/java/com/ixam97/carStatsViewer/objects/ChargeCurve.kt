@@ -1,6 +1,6 @@
-package com.ixam97.carStatsViewer.objects
+package dev.boessi.carStatsViewer.objects
 
-import com.ixam97.carStatsViewer.plot.PlotLineItem
+import dev.boessi.carStatsViewer.plot.PlotLineItem
 
 data class ChargeCurve(
     var chargePlotLine: List<PlotLineItem>,

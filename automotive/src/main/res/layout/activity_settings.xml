@@ -207,7 +207,7 @@
                     style="@style/menu_divider_style"
                     android:background="?android:attr/listDivider"/>
 
-                <com.ixam97.carStatsViewer.views.PlotView
+                <dev.boessi.carStatsViewer.views.PlotView
                     android:id="@+id/settings_consumption_plot_view"
                     android:layout_width="match_parent"
                     android:layout_height="500dp"/>
@@ -360,7 +360,7 @@
 
                 </LinearLayout>
 
-                <com.ixam97.carStatsViewer.views.PlotView
+                <dev.boessi.carStatsViewer.views.PlotView
                     android:id="@+id/settings_charge_plot_view"
                     android:layout_width="match_parent"
                     android:layout_height="500dp"/>

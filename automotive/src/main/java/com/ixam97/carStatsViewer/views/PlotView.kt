@@ -1,4 +1,4 @@
-package com.ixam97.carStatsViewer.views
+package dev.boessi.carStatsViewer.views
 
 import android.content.Context
 import android.graphics.*
@@ -13,8 +13,8 @@ import android.view.ScaleGestureDetector.SimpleOnScaleGestureListener
 import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getColor
-import com.ixam97.carStatsViewer.R
-import com.ixam97.carStatsViewer.plot.*
+import dev.boessi.carStatsViewer.R
+import dev.boessi.carStatsViewer.plot.*
 import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
 

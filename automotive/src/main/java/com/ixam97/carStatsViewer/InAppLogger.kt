@@ -1,6 +1,6 @@
-package com.ixam97.carStatsViewer
+package dev.boessi.carStatsViewer
 
-import com.ixam97.carStatsViewer.objects.*
+import dev.boessi.carStatsViewer.objects.*
 import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager

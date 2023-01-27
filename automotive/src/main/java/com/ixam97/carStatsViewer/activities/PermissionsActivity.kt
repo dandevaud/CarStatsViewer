@@ -1,4 +1,4 @@
-package com.ixam97.carStatsViewer.activities
+package dev.boessi.carStatsViewer.activities
 
 import android.app.Activity
 import android.app.AlertDialog
@@ -6,8 +6,8 @@ import android.car.Car
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import com.ixam97.carStatsViewer.InAppLogger
-import com.ixam97.carStatsViewer.R
+import dev.boessi.carStatsViewer.InAppLogger
+import dev.boessi.carStatsViewer.R
 import kotlin.system.exitProcess
 
 class PermissionsActivity: Activity() {

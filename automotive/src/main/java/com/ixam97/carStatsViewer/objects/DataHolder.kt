@@ -1,9 +1,9 @@
-package com.ixam97.carStatsViewer.objects
+package dev.boessi.carStatsViewer.objects
 
 import android.car.VehicleGear
-import com.ixam97.carStatsViewer.BuildConfig
-import com.ixam97.carStatsViewer.InAppLogger
-import com.ixam97.carStatsViewer.plot.*
+import dev.boessi.carStatsViewer.BuildConfig
+import dev.boessi.carStatsViewer.InAppLogger
+import dev.boessi.carStatsViewer.plot.*
 import java.util.*
 import kotlin.collections.ArrayList
 

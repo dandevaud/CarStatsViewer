@@ -1,4 +1,4 @@
-package com.ixam97.carStatsViewer.plot
+package dev.boessi.carStatsViewer.plot
 
 import android.graphics.Color
 import android.graphics.DashPathEffect
