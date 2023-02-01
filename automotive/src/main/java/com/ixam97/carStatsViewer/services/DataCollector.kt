@@ -1,9 +1,8 @@
-package dev.boessi.carStatsViewer.services
+package com.ixam97.carStatsViewer.services
 
 
-import dev.boessi.carStatsViewer.plot.*
-import dev.boessi.carStatsViewer.objects.*
-import dev.boessi.carStatsViewer.*
+import com.ixam97.carStatsViewer.objects.*
+import com.ixam97.carStatsViewer.*
 import android.app.*
 import android.car.Car
 import android.car.VehicleGear
@@ -17,12 +16,14 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationManagerCompat
 import com.google.gson.Gson
-import dev.boessi.carStatsViewer.activities.emulatorMode
-import dev.boessi.carStatsViewer.activities.emulatorPowerSign
+import com.ixam97.carStatsViewer.activities.emulatorMode
+import com.ixam97.carStatsViewer.activities.emulatorPowerSign
+import com.ixam97.carStatsViewer.plot.enums.*
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileWriter
 import java.lang.Runnable
+import java.util.concurrent.TimeUnit
 import kotlin.collections.HashMap
 import kotlin.math.absoluteValue
 
@@ -319,8 +320,6 @@ class DataCollector : Service() {
             if (value.timestamp < startupTimestamp) return
             InAppLogger.logVHALCallback()
 
-            // DataManager.update(value)
-
             speedUpdater(value)
 
             if (emulatorMode) {
@@ -400,8 +399,7 @@ class DataCollector : Service() {
                     ChargeCurve(
                         DataHolder.chargePlotLine.getDataPoints(PlotDimension.TIME, null),
                         null,
-                        chargeStartTimeNanos,
-                        System.nanoTime(),
+                        DataHolder.chargeTimeMillis,
                         DataHolder.chargedEnergy,
                         0f, 0f
                     )
@@ -456,7 +454,8 @@ class DataCollector : Service() {
             timestamp,
             DataHolder.traveledDistance,
             DataHolder.stateOfCharge(),
-            plotLineMarkerType = marker
+            plotLineMarkerType = marker,
+            autoMarkerTimeDeltaThreshold = TimeUnit.MILLISECONDS.toNanos(CHARGE_CURVE_UPDATE_INTERVAL_MILLIS) * 2
         )
     }
 
@@ -493,7 +492,7 @@ class DataCollector : Service() {
             val consumptionPlotTrigger = when {
                 consumptionPlotTracking -> when {
                     DataHolder.traveledDistance >= DataHolder.lastPlotDistance + 100 -> true
-                    DataHolder.currentGear == VehicleGear.GEAR_PARK -> (DataHolder.lastPlotMarker?:PlotLineMarkerType.BEGIN_SESSION) == PlotLineMarkerType.BEGIN_SESSION || DataHolder.traveledDistance != DataHolder.lastPlotDistance
+                    DataHolder.currentGear == VehicleGear.GEAR_PARK -> (DataHolder.lastPlotMarker?: PlotLineMarkerType.BEGIN_SESSION) == PlotLineMarkerType.BEGIN_SESSION || DataHolder.traveledDistance != DataHolder.lastPlotDistance
                     else -> false
                 }
                 else -> false

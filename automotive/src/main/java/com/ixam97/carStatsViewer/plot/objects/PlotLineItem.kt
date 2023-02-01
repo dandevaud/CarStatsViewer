@@ -1,5 +1,6 @@
-package dev.boessi.carStatsViewer.plot
+package com.ixam97.carStatsViewer.plot.objects
 
+import com.ixam97.carStatsViewer.plot.enums.*
 import kotlin.math.roundToInt
 
 class PlotLineItem (

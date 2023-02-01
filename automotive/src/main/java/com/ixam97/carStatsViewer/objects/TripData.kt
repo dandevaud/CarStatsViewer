@@ -1,13 +1,13 @@
-package dev.boessi.carStatsViewer.objects
+package com.ixam97.carStatsViewer.objects
 
-import dev.boessi.carStatsViewer.plot.PlotLineItem
-import dev.boessi.carStatsViewer.plot.PlotLineMarkerType
-import dev.boessi.carStatsViewer.plot.PlotMarker
+import com.ixam97.carStatsViewer.plot.objects.PlotLineItem
+import com.ixam97.carStatsViewer.plot.enums.PlotLineMarkerType
+import com.ixam97.carStatsViewer.plot.objects.PlotMarker
 import java.util.*
 
 data class TripData(
     var appVersion: String,
-    var saveDate: Date,
+    var tripStartDate: Date,
     var traveledDistance: Float,
     var usedEnergy: Float,
     var averageConsumption: Float,

@@ -1,9 +1,10 @@
-package dev.boessi.carStatsViewer.objects
+package com.ixam97.carStatsViewer.objects
 
 import android.car.VehicleGear
-import dev.boessi.carStatsViewer.BuildConfig
-import dev.boessi.carStatsViewer.InAppLogger
-import dev.boessi.carStatsViewer.plot.*
+import com.ixam97.carStatsViewer.BuildConfig
+import com.ixam97.carStatsViewer.InAppLogger
+import com.ixam97.carStatsViewer.plot.enums.*
+import com.ixam97.carStatsViewer.plot.objects.*
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -66,6 +67,7 @@ object DataHolder {
 
     var maxBatteryCapacity = 0f
 
+    var tripStartDate = Date()
     var traveledDistance = 0F
     var usedEnergy = 0F
     var chargedEnergy = 0F
@@ -91,15 +93,6 @@ object DataHolder {
             PlotHighlightMethod.AVG_BY_DISTANCE,
             "Wh/km"
         ),
-        hashMapOf(
-            PlotSecondaryDimension.SPEED to PlotLineConfiguration(
-                PlotRange(0f, 40f, 0f, 240f, 40f),
-                PlotLineLabelFormat.NUMBER,
-                PlotLabelPosition.RIGHT,
-                PlotHighlightMethod.AVG_BY_TIME,
-                "km/h"
-            )
-        )
     )
 
     var chargePlotLine = PlotLine(
@@ -110,22 +103,6 @@ object DataHolder {
             PlotHighlightMethod.AVG_BY_TIME,
             "kW"
         ),
-        hashMapOf(
-            PlotSecondaryDimension.TIME to PlotLineConfiguration(
-                PlotRange(),
-                PlotLineLabelFormat.TIME,
-                PlotLabelPosition.RIGHT,
-                PlotHighlightMethod.MAX,
-                "Time"
-            ),
-            PlotSecondaryDimension.STATE_OF_CHARGE to PlotLineConfiguration(
-                PlotRange(0f, 100f, backgroundZero = 0f),
-                PlotLineLabelFormat.PERCENTAGE,
-                PlotLabelPosition.RIGHT,
-                PlotHighlightMethod.MAX,
-                "% SoC"
-            )
-        )
     )
 
     var chargeCurves: ArrayList<ChargeCurve> = ArrayList()
@@ -140,6 +117,7 @@ object DataHolder {
         }
 
         traveledDistance = tripData.traveledDistance ?: 0f
+        tripStartDate = tripData.tripStartDate ?: Date()
         usedEnergy = tripData.usedEnergy ?: 0f
         averageConsumption = tripData.averageConsumption ?: 0f
         travelTimeMillis = tripData.travelTimeMillis ?: 0L
@@ -181,10 +159,14 @@ object DataHolder {
         }
     }
 
+    fun getTripData(fileName: String): TripData {
+        return getTripData()
+    }
+
     fun getTripData(): TripData {
         return TripData(
             BuildConfig.VERSION_NAME,
-            Date(),
+            tripStartDate,
             traveledDistance,
             usedEnergy,
             averageConsumption,
@@ -203,7 +185,10 @@ object DataHolder {
 
     fun resetDataHolder() {
         traveledDistance = 0f
+        tripStartDate = Date()
         usedEnergy = 0f
+        chargedEnergy = 0f
+        chargeTimeMillis = 0L
         averageConsumption = 0f
         travelTimeMillis = 0L
         lastPlotDistance = 0F

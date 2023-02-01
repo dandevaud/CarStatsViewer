@@ -1,11 +1,12 @@
-package dev.boessi.carStatsViewer.plot
+package com.ixam97.carStatsViewer.plot.objects
 
+import com.ixam97.carStatsViewer.plot.graphics.*
+import com.ixam97.carStatsViewer.plot.enums.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
 
 class PlotLine(
     val Configuration: PlotLineConfiguration,
-    val SecondaryDimensionConfiguration: HashMap<PlotSecondaryDimension, PlotLineConfiguration> = HashMap(),
     var Visible: Boolean = true
 ) {
     private val dataPoints: ConcurrentHashMap<Int, PlotLineItem> = ConcurrentHashMap()
@@ -19,33 +20,41 @@ class PlotLine(
 
     var zeroAt: Float? = null
 
-    fun addDataPoint(item: Float, time: Long, distance: Float, stateOfCharge: Float, timeDelta: Long? = null, distanceDelta: Float? = null, stateOfChargeDelta: Float? = null, plotLineMarkerType: PlotLineMarkerType? = null) {
+    fun addDataPoint(item: Float, time: Long, distance: Float, stateOfCharge: Float, timeDelta: Long? = null, distanceDelta: Float? = null, stateOfChargeDelta: Float? = null, plotLineMarkerType: PlotLineMarkerType? = null, autoMarkerTimeDeltaThreshold: Long? = null) {
         val prev = dataPoints[dataPoints.size - 1]
 
-        addDataPoint(PlotLineItem(
+        addDataPoint(
+            PlotLineItem(
             item,
             time,
             distance,
             stateOfCharge,
             timeDelta?:(time - (prev?.Time ?: time)),
             distanceDelta?:(distance - (prev?.Distance ?: distance)),
-            stateOfChargeDelta?:(stateOfCharge - (prev?.StateOfCharge ?: distance)),
+            stateOfChargeDelta?:(stateOfCharge - (prev?.StateOfCharge ?: stateOfCharge)),
             plotLineMarkerType
-        ))
+        ), autoMarkerTimeDeltaThreshold)
     }
 
-    fun addDataPoint(dataPoint: PlotLineItem) {
+    fun addDataPoint(dataPoint: PlotLineItem, autoMarkerTimeDeltaThreshold: Long? = null) {
+        val prev = dataPoints[dataPoints.size - 1]
+
+        if (dataPoint.Marker == PlotLineMarkerType.BEGIN_SESSION && prev?.Marker == null){
+            prev?.Marker = PlotLineMarkerType.END_SESSION
+        }
+        
+        if (dataPoint.Marker == null && prev == null) {
+            dataPoint.Marker = PlotLineMarkerType.BEGIN_SESSION
+        }
+
+        if ((autoMarkerTimeDeltaThreshold ?: dataPoint.TimeDelta ?: 0L) < (dataPoint.TimeDelta ?: 0L)) {
+            prev?.Marker = PlotLineMarkerType.END_SESSION
+            dataPoint.Marker = PlotLineMarkerType.BEGIN_SESSION
+        }
+
         when {
             dataPoint.Value.isFinite() -> {
                 dataPoints[dataPoints.size] = dataPoint
-            }
-            dataPoint.Marker == PlotLineMarkerType.END_SESSION -> {
-                val lastPoint = dataPoints[dataPoints.size - 1]
-                when {
-                    lastPoint != null && lastPoint.Marker == null -> {
-                        lastPoint.Marker = dataPoint.Marker
-                    }
-                }
             }
         }
     }
@@ -136,7 +145,7 @@ class PlotLine(
     }
 
     fun maxValue(dataPoints: List<PlotLineItem>, secondaryDimension: PlotSecondaryDimension? = null, applyRange: Boolean = true): Float? {
-        val baseConfiguration = SecondaryDimensionConfiguration[secondaryDimension] ?: Configuration
+        val baseConfiguration = PlotGlobalConfiguration.SecondaryDimensionConfiguration[secondaryDimension] ?: Configuration
         val max : Float? = when {
             dataPoints.isEmpty() -> baseConfiguration.Range.minPositive ?: 0f
             else -> {
@@ -164,7 +173,7 @@ class PlotLine(
     }
 
     fun minValue(dataPoints: List<PlotLineItem>, secondaryDimension: PlotSecondaryDimension? = null, applyRange: Boolean = true): Float? {
-        val baseConfiguration = SecondaryDimensionConfiguration[secondaryDimension] ?: Configuration
+        val baseConfiguration = PlotGlobalConfiguration.SecondaryDimensionConfiguration[secondaryDimension] ?: Configuration
         val min : Float? = when {
             dataPoints.isEmpty() -> baseConfiguration.Range.minNegative ?: 0f
             else -> {
@@ -254,7 +263,7 @@ class PlotLine(
         if (dataPoints.isEmpty()) return null
 
         val configuration = when {
-            secondaryDimension != null -> SecondaryDimensionConfiguration[secondaryDimension]
+            secondaryDimension != null -> PlotGlobalConfiguration.SecondaryDimensionConfiguration[secondaryDimension]
             else -> Configuration
         } ?: return null
 

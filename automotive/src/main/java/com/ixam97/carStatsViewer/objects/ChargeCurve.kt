@@ -1,12 +1,11 @@
-package dev.boessi.carStatsViewer.objects
+package com.ixam97.carStatsViewer.objects
 
-import dev.boessi.carStatsViewer.plot.PlotLineItem
+import com.ixam97.carStatsViewer.plot.objects.PlotLineItem
 
 data class ChargeCurve(
     var chargePlotLine: List<PlotLineItem>,
     var stateOfChargePlotLine: List<PlotLineItem>?,
-    var startTimeNanos: Long,
-    var endTimeNanos: Long,
+    var chargeTime: Long,
     var chargedEnergyWh: Float,
     var maxChargeRatemW: Float,
     var avgChargeRatemW: Float
