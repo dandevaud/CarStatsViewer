@@ -7,11 +7,11 @@ android {
     buildToolsVersion "29.0.3"
 
     defaultConfig {
-        applicationId "com.ixam97.carStatsViewer_dev"
+        applicationId "dev.boessi.carStatsViewer"
         minSdkVersion 28
         targetSdkVersion 33
-        versionCode 39
-        versionName "0.22.0_dev02"
+        versionCode 2023_02_01_0
+        versionName "2023.02.01_000"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -25,7 +25,7 @@ android {
 
     // android.car exists since Android 10 (API level 29) Revision 5.
     useLibrary 'android.car'
-    namespace 'com.ixam97.carStatsViewer'
+    namespace 'dev.boessi.carStatsViewer'
 }
 
 dependencies {

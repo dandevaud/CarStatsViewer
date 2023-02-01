@@ -1,9 +1,9 @@
-package com.ixam97.carStatsViewer.activities
+package dev.boessi.carStatsViewer.activities
 
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
-import com.ixam97.carStatsViewer.*
-import com.ixam97.carStatsViewer.objects.*
+import dev.boessi.carStatsViewer.*
+import dev.boessi.carStatsViewer.objects.*
 import android.app.Activity
 import android.app.AlertDialog
 import android.car.VehicleGear
@@ -20,12 +20,12 @@ import android.view.View
 import android.widget.SeekBar
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.TextView
-import com.ixam97.carStatsViewer.plot.enums.*
-import com.ixam97.carStatsViewer.plot.objects.PlotLine
-import com.ixam97.carStatsViewer.plot.objects.PlotLineConfiguration
-import com.ixam97.carStatsViewer.plot.graphics.PlotPaint
-import com.ixam97.carStatsViewer.plot.objects.PlotRange
-import com.ixam97.carStatsViewer.views.PlotView
+import dev.boessi.carStatsViewer.plot.enums.*
+import dev.boessi.carStatsViewer.plot.objects.PlotLine
+import dev.boessi.carStatsViewer.plot.objects.PlotLineConfiguration
+import dev.boessi.carStatsViewer.plot.graphics.PlotPaint
+import dev.boessi.carStatsViewer.plot.objects.PlotRange
+import dev.boessi.carStatsViewer.views.PlotView
 import kotlin.system.exitProcess
 
 class SettingsActivity : Activity() {

@@ -1,6 +1,6 @@
-package com.ixam97.carStatsViewer.plot.objects
+package dev.boessi.carStatsViewer.plot.objects
 
-import com.ixam97.carStatsViewer.plot.enums.*
+import dev.boessi.carStatsViewer.plot.enums.*
 
 object PlotGlobalConfiguration {
     val SecondaryDimensionConfiguration: HashMap<PlotSecondaryDimension, PlotLineConfiguration> =

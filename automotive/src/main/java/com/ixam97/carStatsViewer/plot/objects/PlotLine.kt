@@ -1,7 +1,7 @@
-package com.ixam97.carStatsViewer.plot.objects
+package dev.boessi.carStatsViewer.plot.objects
 
-import com.ixam97.carStatsViewer.plot.graphics.*
-import com.ixam97.carStatsViewer.plot.enums.*
+import dev.boessi.carStatsViewer.plot.graphics.*
+import dev.boessi.carStatsViewer.plot.enums.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
 

@@ -1,8 +1,8 @@
-package com.ixam97.carStatsViewer.services
+package dev.boessi.carStatsViewer.services
 
 
-import com.ixam97.carStatsViewer.objects.*
-import com.ixam97.carStatsViewer.*
+import dev.boessi.carStatsViewer.objects.*
+import dev.boessi.carStatsViewer.*
 import android.app.*
 import android.car.Car
 import android.car.VehicleGear
@@ -16,9 +16,9 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationManagerCompat
 import com.google.gson.Gson
-import com.ixam97.carStatsViewer.activities.emulatorMode
-import com.ixam97.carStatsViewer.activities.emulatorPowerSign
-import com.ixam97.carStatsViewer.plot.enums.*
+import dev.boessi.carStatsViewer.activities.emulatorMode
+import dev.boessi.carStatsViewer.activities.emulatorPowerSign
+import dev.boessi.carStatsViewer.plot.enums.*
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileWriter

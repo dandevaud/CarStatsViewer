@@ -1,4 +1,4 @@
-package com.ixam97.carStatsViewer.activities
+package dev.boessi.carStatsViewer.activities
 
 import android.app.Activity
 import android.app.AlertDialog
@@ -11,14 +11,14 @@ import android.text.format.DateFormat
 import android.util.TypedValue
 import android.view.View
 import android.widget.SeekBar
-import com.ixam97.carStatsViewer.R
-import com.ixam97.carStatsViewer.objects.AppPreferences
-import com.ixam97.carStatsViewer.objects.DataHolder
-import com.ixam97.carStatsViewer.objects.TripData
-import com.ixam97.carStatsViewer.plot.enums.*
-import com.ixam97.carStatsViewer.plot.graphics.*
-import com.ixam97.carStatsViewer.plot.objects.*
-import com.ixam97.carStatsViewer.views.PlotView
+import dev.boessi.carStatsViewer.R
+import dev.boessi.carStatsViewer.objects.AppPreferences
+import dev.boessi.carStatsViewer.objects.DataHolder
+import dev.boessi.carStatsViewer.objects.TripData
+import dev.boessi.carStatsViewer.plot.enums.*
+import dev.boessi.carStatsViewer.plot.graphics.*
+import dev.boessi.carStatsViewer.plot.objects.*
+import dev.boessi.carStatsViewer.views.PlotView
 import kotlinx.android.synthetic.main.activity_summary.*
 import java.util.*
 import java.util.concurrent.TimeUnit

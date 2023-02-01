@@ -1,4 +1,4 @@
-package com.ixam97.carStatsViewer.plot.objects
+package dev.boessi.carStatsViewer.plot.objects
 
 class PlotPoint(
     val x: Float,

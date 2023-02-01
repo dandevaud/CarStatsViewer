@@ -1,8 +1,8 @@
-package com.ixam97.carStatsViewer.activities
+package dev.boessi.carStatsViewer.activities
 
-import com.ixam97.carStatsViewer.*
-import com.ixam97.carStatsViewer.objects.*
-import com.ixam97.carStatsViewer.services.*
+import dev.boessi.carStatsViewer.*
+import dev.boessi.carStatsViewer.objects.*
+import dev.boessi.carStatsViewer.services.*
 import android.app.Activity
 import android.app.PendingIntent
 import android.car.VehicleGear
@@ -19,9 +19,9 @@ import android.os.Looper
 import android.os.SystemClock
 import android.view.View
 import android.widget.Toast
-import com.ixam97.carStatsViewer.plot.enums.*
-import com.ixam97.carStatsViewer.plot.graphics.PlotPaint
-import com.ixam97.carStatsViewer.views.PlotView
+import dev.boessi.carStatsViewer.plot.enums.*
+import dev.boessi.carStatsViewer.plot.graphics.PlotPaint
+import dev.boessi.carStatsViewer.views.PlotView
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -349,9 +349,9 @@ class MainActivity : Activity() {
 
         main_consumption_plot.reset()
         main_consumption_plot.addPlotLine(DataHolder.consumptionPlotLine)
-        // main_consumption_plot.setPlotMarkers(DataHolder.plotMarkers)
-        // main_consumption_plot.visibleMarkerTypes.add(PlotMarkerType.CHARGE)
-        // main_consumption_plot.visibleMarkerTypes.add(PlotMarkerType.PARK)
+        main_consumption_plot.setPlotMarkers(DataHolder.plotMarkers)
+        main_consumption_plot.visibleMarkerTypes.add(PlotMarkerType.CHARGE)
+        main_consumption_plot.visibleMarkerTypes.add(PlotMarkerType.PARK)
 
         main_button_speed.text = when {
             main_consumption_plot.secondaryDimension != null -> getString(R.string.main_button_hide_speed)
@@ -366,7 +366,7 @@ class MainActivity : Activity() {
         main_consumption_plot.dimension = PlotDimension.DISTANCE
         main_consumption_plot.dimensionRestriction = 10_001L
         main_consumption_plot.dimensionSmoothingPercentage = 0.02f
-        //main_consumption_plot.dimensionShiftTouchInterval = 1_000L
+        main_consumption_plot.dimensionShiftTouchEnabled = true
         //main_consumption_plot.dimensionRestrictionTouchInterval = 5_000L
         main_consumption_plot.secondaryDimension = when (appPreferences.plotSpeed) {
             true -> PlotSecondaryDimension.SPEED

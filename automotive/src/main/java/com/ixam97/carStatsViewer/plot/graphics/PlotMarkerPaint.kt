@@ -1,4 +1,4 @@
-package com.ixam97.carStatsViewer.plot.graphics
+package dev.boessi.carStatsViewer.plot.graphics
 
 import android.graphics.Color
 import android.graphics.Paint
