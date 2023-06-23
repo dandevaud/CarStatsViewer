@@ -10,14 +10,17 @@ import com.google.gson.Gson
 import com.ixam97.carStatsViewer.CarStatsViewer
 import com.ixam97.carStatsViewer.R
 import com.ixam97.carStatsViewer.appPreferences.AppPreferences
+import com.ixam97.carStatsViewer.dataCollector.DrivingState
 import com.ixam97.carStatsViewer.dataProcessor.RealTimeData
 import com.ixam97.carStatsViewer.liveDataApi.LiveDataApi
+import com.ixam97.carStatsViewer.liveDataApi.abrpLiveData.AbrpLiveData
 import com.ixam97.carStatsViewer.utils.InAppLogger
 import java.io.DataOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.util.*
+import kotlin.math.roundToInt
 
 
 class HttpLiveData (
@@ -114,62 +117,50 @@ class HttpLiveData (
     }
 
     override fun sendNow(realTimeData: RealTimeData) {
-        /*
+
         if (!AppPreferences(CarStatsViewer.appContext).httpLiveDataEnabled) {
             connectionStatus = ConnectionStatus.UNUSED
             return
         }
 
-        var lat: Double? = null
-        var lon: Double? = null
-        var alt: Double? = null
-
-        dataManager.location?.let {
-            if (it.time + 20_000 > System.currentTimeMillis()) {
-                lat = it.latitude
-                lon = it.longitude
-                alt = it.altitude
-            }
-        }
-
         connectionStatus = send(
             HttpDataSet(
                 timestamp = System.currentTimeMillis(),
-                currentSpeed = dataManager.currentSpeed * 3.6f,
-                currentPower = dataManager.currentPower / 1_000_000f,
-                currentGear = dataManager.currentGear,
-                chargePortConnected = dataManager.chargePortConnected,
-                batteryLevel = dataManager.batteryLevel,
-                stateOfCharge = dataManager.stateOfCharge,
-                currentIgnitionState = dataManager.currentIgnitionState,
-                instConsumption = dataManager.instConsumption,
-                avgConsumption = dataManager.avgConsumption,
-                avgSpeed = dataManager.avgSpeed,
-                travelTime = dataManager.travelTime,
-                chargeTime = dataManager.chargeTime,
-                driveState = dataManager.driveState,
-                ambientTemperature = dataManager.ambientTemperature,
-                maxBatteryLevel = dataManager.maxBatteryLevel,
-                tripStartDate = dataManager.tripStartDate,
-                usedEnergy = dataManager.usedEnergy,
-                traveledDistance = dataManager.traveledDistance,
-                chargeStartDate = dataManager.chargeStartDate,
-                chargedEnergy = dataManager.chargedEnergy,
-                lat = lat,
-                lon = lon,
-                alt = alt,
+                currentSpeed = realTimeData.speed * 3.6f,
+                currentPower = realTimeData.power / 1_000_000f,
+                currentGear = realTimeData.selectedGear,
+                chargePortConnected = realTimeData.chargePortConnected,
+                batteryLevel = realTimeData.batteryLevel,
+                stateOfCharge = (realTimeData.stateOfCharge * 100f).roundToInt(),
+                currentIgnitionState = realTimeData.ignitionState,
+                instConsumption = realTimeData.instConsumption,
+                //avgConsumption = dataManager.avgConsumption,
+                //avgSpeed = dataManager.avgSpeed,
+                //travelTime = dataManager.travelTime,
+                //chargeTime = dataManager.chargeTime,
+                driveState = realTimeData.drivingState,
+                ambientTemperature = realTimeData.ambientTemperature,
+                maxBatteryLevel = realTimeData.batteryLevel,
+                //tripStartDate = dataManager.tripStartDate,
+                //usedEnergy = dataManager.usedEnergy,
+                //traveledDistance = dataManager.traveledDistance,
+                //chargeStartDate = dataManager.chargeStartDate,
+                //chargedEnergy = dataManager.chargedEnergy,
+                lat = realTimeData.lat,
+                lon = realTimeData.lon,
+                alt = realTimeData.alt,
 
                 // Helpers
-                isCharging = dataManager.chargePortConnected,
-                isParked = (dataManager.driveState == DrivingState.PARKED || dataManager.driveState == DrivingState.CHARGE),
-                isFastCharging = (dataManager.chargePortConnected && dataManager.currentPower < -11_000_000),
+                isCharging = realTimeData.chargePortConnected,
+                isParked = (realTimeData.drivingState == DrivingState.PARKED || realTimeData.drivingState == DrivingState.CHARGE),
+                isFastCharging = (realTimeData.chargePortConnected && realTimeData.power < -11_000_000),
+
+
 
                 // ABRP debug
                 abrpPackage = (CarStatsViewer.liveDataApis[0] as AbrpLiveData).lastPackage
             )
         )
-
-         */
     }
 
     private fun send(dataSet: HttpDataSet, context: Context = CarStatsViewer.appContext): ConnectionStatus {

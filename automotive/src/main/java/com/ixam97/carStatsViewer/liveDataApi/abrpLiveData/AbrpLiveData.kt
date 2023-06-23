@@ -16,6 +16,7 @@ import org.json.JSONObject
 import java.io.DataOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import kotlin.math.roundToInt
 
 class AbrpLiveData (
     private val apiKey : String,
@@ -142,19 +143,15 @@ class AbrpLiveData (
             return
         }
 
-        var lat: Double? = null
-        var lon: Double? = null
-        var alt: Double? = null
-
         connectionStatus = send(AbrpDataSet(
-            stateOfCharge = (realTimeData.stateOfCharge * 100f).toInt(),
+            stateOfCharge = (realTimeData.stateOfCharge * 100f).roundToInt(),
             power = realTimeData.power,
             speed = realTimeData.speed,
             isCharging = realTimeData.chargePortConnected,
             isParked = (realTimeData.drivingState == DrivingState.PARKED || realTimeData.drivingState == DrivingState.CHARGE),
-            lat = realTimeData.lat as Double?,
-            lon = realTimeData.lon as Double?,
-            alt = realTimeData.alt as Double?,
+            lat = realTimeData.lat,
+            lon = realTimeData.lon,
+            alt = realTimeData.alt,
             temp = realTimeData.ambientTemperature
         ))
     }

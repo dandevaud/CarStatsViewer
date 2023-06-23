@@ -394,6 +394,7 @@ class MainActivity : FragmentActivity() {
         main_consumption_plot.dimensionRestriction = distanceUnit.asUnit(
             CONSUMPTION_DISTANCE_RESTRICTION
         )
+        main_consumption_plot.dimensionRestrictionMin = appPreferences.distanceUnit.asUnit(DISTANCE_TRIP_DIVIDER)
         main_consumption_plot.invalidate()
     }
 
@@ -489,6 +490,7 @@ class MainActivity : FragmentActivity() {
         main_consumption_plot.dimensionRestriction = appPreferences.distanceUnit.asUnit(
             CONSUMPTION_DISTANCE_RESTRICTION
         )
+        main_consumption_plot.dimensionRestrictionMin = appPreferences.distanceUnit.asUnit(DISTANCE_TRIP_DIVIDER)
         main_consumption_plot.dimensionSmoothing = 0.02f
         main_consumption_plot.dimensionSmoothingType = PlotDimensionSmoothingType.PERCENTAGE
         main_consumption_plot.sessionGapRendering = PlotSessionGapRendering.JOIN
