@@ -16,6 +16,7 @@ import org.json.JSONObject
 import java.io.DataOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import kotlin.math.roundToInt
 
 class AbrpLiveData (
     private val apiKey : String,
@@ -144,7 +145,7 @@ class AbrpLiveData (
 
         if (realTimeData.isInitialized()) {
             connectionStatus = send(AbrpDataSet(
-                stateOfCharge = (realTimeData.stateOfCharge!! * 100f).toInt(),
+                stateOfCharge = (realTimeData.stateOfCharge!! * 100f).roundToInt(),
                 power = realTimeData.power!!,
                 speed = realTimeData.speed!!,
                 isCharging = realTimeData.chargePortConnected!!,

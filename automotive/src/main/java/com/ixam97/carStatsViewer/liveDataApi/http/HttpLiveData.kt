@@ -154,7 +154,7 @@ class HttpLiveData (
                     // Helpers
                     isCharging = realTimeData.chargePortConnected,
                     isParked = (realTimeData.drivingState == DrivingState.PARKED || realTimeData.drivingState == DrivingState.CHARGE),
-                    isFastCharging = ((realTimeData.chargePortConnected?:false) && ((realTimeData.power?:0f) < -11_000_000f)),
+                    isFastCharging = (realTimeData.chargePortConnected!! && (realTimeData.power!! < -11_000_000f)),
 
                     // ABRP debug
                     abrpPackage = (CarStatsViewer.liveDataApis[0] as AbrpLiveData).lastPackage
