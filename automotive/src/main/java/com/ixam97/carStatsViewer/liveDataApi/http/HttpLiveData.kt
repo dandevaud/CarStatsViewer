@@ -123,44 +123,44 @@ class HttpLiveData (
             return
         }
 
-        connectionStatus = send(
-            HttpDataSet(
-                timestamp = System.currentTimeMillis(),
-                currentSpeed = realTimeData.speed * 3.6f,
-                currentPower = realTimeData.power / 1_000_000f,
-                currentGear = realTimeData.selectedGear,
-                chargePortConnected = realTimeData.chargePortConnected,
-                batteryLevel = realTimeData.batteryLevel,
-                stateOfCharge = (realTimeData.stateOfCharge * 100f).roundToInt(),
-                currentIgnitionState = realTimeData.ignitionState,
-                instConsumption = realTimeData.instConsumption,
-                //avgConsumption = dataManager.avgConsumption,
-                //avgSpeed = dataManager.avgSpeed,
-                //travelTime = dataManager.travelTime,
-                //chargeTime = dataManager.chargeTime,
-                driveState = realTimeData.drivingState,
-                ambientTemperature = realTimeData.ambientTemperature,
-                maxBatteryLevel = realTimeData.batteryLevel,
-                //tripStartDate = dataManager.tripStartDate,
-                //usedEnergy = dataManager.usedEnergy,
-                //traveledDistance = dataManager.traveledDistance,
-                //chargeStartDate = dataManager.chargeStartDate,
-                //chargedEnergy = dataManager.chargedEnergy,
-                lat = realTimeData.lat,
-                lon = realTimeData.lon,
-                alt = realTimeData.alt,
+        if (realTimeData.isInitialized()) {
+            connectionStatus = send(
+                HttpDataSet(
+                    timestamp = System.currentTimeMillis(),
+                    currentSpeed = realTimeData.speed!! * 3.6f,
+                    currentPower = realTimeData.power!! / 1_000_000f,
+                    currentGear = realTimeData.selectedGear,
+                    chargePortConnected = realTimeData.chargePortConnected,
+                    batteryLevel = realTimeData.batteryLevel,
+                    stateOfCharge =  (realTimeData.stateOfCharge!! * 100f).roundToInt(),
+                    currentIgnitionState = realTimeData.ignitionState,
+                    instConsumption = realTimeData.instConsumption,
+                    //avgConsumption = dataManager.avgConsumption,
+                    //avgSpeed = dataManager.avgSpeed,
+                    //travelTime = dataManager.travelTime,
+                    //chargeTime = dataManager.chargeTime,
+                    driveState = realTimeData.drivingState,
+                    ambientTemperature = realTimeData.ambientTemperature,
+                    maxBatteryLevel = realTimeData.batteryLevel,
+                    //tripStartDate = dataManager.tripStartDate,
+                    //usedEnergy = dataManager.usedEnergy,
+                    //traveledDistance = dataManager.traveledDistance,
+                    //chargeStartDate = dataManager.chargeStartDate,
+                    //chargedEnergy = dataManager.chargedEnergy,
+                    lat = realTimeData.lat,
+                    lon = realTimeData.lon,
+                    alt = realTimeData.alt,
 
-                // Helpers
-                isCharging = realTimeData.chargePortConnected,
-                isParked = (realTimeData.drivingState == DrivingState.PARKED || realTimeData.drivingState == DrivingState.CHARGE),
-                isFastCharging = (realTimeData.chargePortConnected && realTimeData.power < -11_000_000),
+                    // Helpers
+                    isCharging = realTimeData.chargePortConnected,
+                    isParked = (realTimeData.drivingState == DrivingState.PARKED || realTimeData.drivingState == DrivingState.CHARGE),
+                    isFastCharging = ((realTimeData.chargePortConnected?:false) && ((realTimeData.power?:0f) < -11_000_000f)),
 
-
-
-                // ABRP debug
-                abrpPackage = (CarStatsViewer.liveDataApis[0] as AbrpLiveData).lastPackage
+                    // ABRP debug
+                    abrpPackage = (CarStatsViewer.liveDataApis[0] as AbrpLiveData).lastPackage
+                )
             )
-        )
+        }
     }
 
     private fun send(dataSet: HttpDataSet, context: Context = CarStatsViewer.appContext): ConnectionStatus {
