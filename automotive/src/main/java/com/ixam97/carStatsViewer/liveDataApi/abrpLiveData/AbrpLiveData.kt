@@ -12,6 +12,7 @@ import com.ixam97.carStatsViewer.R
 import com.ixam97.carStatsViewer.appPreferences.AppPreferences
 import com.ixam97.carStatsViewer.dataCollector.DrivingState
 import com.ixam97.carStatsViewer.dataProcessor.RealTimeData
+import com.ixam97.carStatsViewer.database.tripData.DrivingSession
 import org.json.JSONObject
 import java.io.DataOutputStream
 import java.net.HttpURLConnection
@@ -137,7 +138,7 @@ class AbrpLiveData (
         tokenDialog.show()
     }
 
-    override fun sendNow(realTimeData: RealTimeData) {
+    override fun sendNow(realTimeData: RealTimeData, drivingSession: DrivingSession?) {
         if (!AppPreferences(CarStatsViewer.appContext).abrpUseApi) {
             connectionStatus = ConnectionStatus.UNUSED
             return

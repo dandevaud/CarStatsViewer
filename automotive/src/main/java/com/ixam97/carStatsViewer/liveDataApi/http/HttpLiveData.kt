@@ -12,6 +12,7 @@ import com.ixam97.carStatsViewer.R
 import com.ixam97.carStatsViewer.appPreferences.AppPreferences
 import com.ixam97.carStatsViewer.dataCollector.DrivingState
 import com.ixam97.carStatsViewer.dataProcessor.RealTimeData
+import com.ixam97.carStatsViewer.database.tripData.DrivingSession
 import com.ixam97.carStatsViewer.liveDataApi.LiveDataApi
 import com.ixam97.carStatsViewer.liveDataApi.abrpLiveData.AbrpLiveData
 import com.ixam97.carStatsViewer.utils.InAppLogger
@@ -116,7 +117,7 @@ class HttpLiveData (
         })
     }
 
-    override fun sendNow(realTimeData: RealTimeData) {
+    override fun sendNow(realTimeData: RealTimeData, drivingSession: DrivingSession?) {
 
         if (!AppPreferences(CarStatsViewer.appContext).httpLiveDataEnabled) {
             connectionStatus = ConnectionStatus.UNUSED
@@ -135,18 +136,9 @@ class HttpLiveData (
                     stateOfCharge =  (realTimeData.stateOfCharge!! * 100f).roundToInt(),
                     currentIgnitionState = realTimeData.ignitionState,
                     instConsumption = realTimeData.instConsumption,
-                    //avgConsumption = dataManager.avgConsumption,
-                    //avgSpeed = dataManager.avgSpeed,
-                    //travelTime = dataManager.travelTime,
-                    //chargeTime = dataManager.chargeTime,
                     driveState = realTimeData.drivingState,
                     ambientTemperature = realTimeData.ambientTemperature,
                     maxBatteryLevel = realTimeData.batteryLevel,
-                    //tripStartDate = dataManager.tripStartDate,
-                    //usedEnergy = dataManager.usedEnergy,
-                    //traveledDistance = dataManager.traveledDistance,
-                    //chargeStartDate = dataManager.chargeStartDate,
-                    //chargedEnergy = dataManager.chargedEnergy,
                     lat = realTimeData.lat,
                     lon = realTimeData.lon,
                     alt = realTimeData.alt,
@@ -157,7 +149,20 @@ class HttpLiveData (
                     isFastCharging = (realTimeData.chargePortConnected!! && (realTimeData.power!! < -11_000_000f)),
 
                     // ABRP debug
-                    abrpPackage = (CarStatsViewer.liveDataApis[0] as AbrpLiveData).lastPackage
+                    abrpPackage = (CarStatsViewer.liveDataApis[0] as AbrpLiveData).lastPackage,
+
+                    // Session Data
+                    drivingSession?.driving_session_id,
+                    drivingSession?.start_epoch_time,
+                    drivingSession?.end_epoch_time,
+                    drivingSession?.session_type,
+                    drivingSession?.drive_time,
+                    drivingSession?.used_energy,
+                    drivingSession?.used_soc,
+                    drivingSession?.used_soc_energy,
+                    drivingSession?.driven_distance,
+                    drivingSession?.note,
+                    drivingSession?.last_edited_epoch_time
                 )
             )
         }

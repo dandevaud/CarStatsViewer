@@ -130,6 +130,7 @@ class DataCollector: Service() {
             .requestFlow(
                 serviceScope,
                 realTimeData = { CarStatsViewer.dataProcessor.realTimeData },
+                drivingSession = { CarStatsViewer.dataProcessor.selectedSessionDataFlow?.value },
                 LIVE_DATA_TASK_INTERVAL
             ).catch { e -> InAppLogger.e("[NEO] requestFlow: ${e.message}") }
             .launchIn(serviceScope)
@@ -138,6 +139,7 @@ class DataCollector: Service() {
             .requestFlow(
                 serviceScope,
                 realTimeData = { CarStatsViewer.dataProcessor.realTimeData },
+                drivingSession = { CarStatsViewer.dataProcessor.selectedSessionDataFlow?.value },
                 LIVE_DATA_TASK_INTERVAL
             ).catch { e -> InAppLogger.e("[NEO] requestFlow: ${e.message}") }
             .launchIn(serviceScope)

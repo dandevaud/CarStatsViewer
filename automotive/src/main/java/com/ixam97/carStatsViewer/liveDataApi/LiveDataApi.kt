@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Handler
 import com.ixam97.carStatsViewer.CarStatsViewer
 import com.ixam97.carStatsViewer.dataProcessor.RealTimeData
+import com.ixam97.carStatsViewer.database.tripData.DrivingSession
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -48,13 +49,14 @@ abstract class LiveDataApi(
     open fun createLiveDataTask(
         // dataManager: DataManager,
         realTimeData: RealTimeData,
+        drivingSession: DrivingSession?,
         handler: Handler,
         interval: Long
     ): Runnable? {
         timeout = interval.toInt()
         return object : Runnable {
             override fun run() {
-                coroutineSendNow(realTimeData)
+                coroutineSendNow(realTimeData, drivingSession)
                 handler.postDelayed(this, interval)
             }
         }
@@ -63,18 +65,18 @@ abstract class LiveDataApi(
     /**
      * sendNow, but wrapped in a coroutine to not block main thread.
      */
-    fun coroutineSendNow(realTimeData: RealTimeData) {
+    fun coroutineSendNow(realTimeData: RealTimeData, drivingSession: DrivingSession?) {
         CoroutineScope(Dispatchers.Default).launch {
-            sendNow(realTimeData)
+            sendNow(realTimeData, drivingSession)
             sendStatusBroadcast(CarStatsViewer.appContext)
         }
     }
 
-    fun requestFlow(serviceScope: CoroutineScope, realTimeData: () -> RealTimeData, interval: Long): Flow<Unit> {
+    fun requestFlow(serviceScope: CoroutineScope, realTimeData: () -> RealTimeData, drivingSession: () -> DrivingSession?, interval: Long): Flow<Unit> {
         timeout = interval.toInt()
         return flow {
             while (true) {
-                coroutineSendNow(realTimeData())
+                coroutineSendNow(realTimeData(), drivingSession())
                 delay(interval)
             }
         }
@@ -84,7 +86,7 @@ abstract class LiveDataApi(
      * Code to be executed in coroutineSendNow. This function should not be called outside a
      * coroutine to not block main thread.
      */
-    protected abstract fun sendNow(realTimeData: RealTimeData)
+    protected abstract fun sendNow(realTimeData: RealTimeData, drivingSession: DrivingSession?)
 
     private fun sendStatusBroadcast(context: Context) {
         val broadcastIntent = Intent(broadcastAction)
