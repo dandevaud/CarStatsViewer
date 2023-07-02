@@ -10,7 +10,7 @@ import com.google.gson.Gson
 import com.ixam97.carStatsViewer.CarStatsViewer
 import com.ixam97.carStatsViewer.R
 import com.ixam97.carStatsViewer.appPreferences.AppPreferences
-import com.ixam97.carStatsViewer.dataCollector.DrivingState
+import com.ixam97.carStatsViewer.dataProcessor.DrivingState
 import com.ixam97.carStatsViewer.dataProcessor.RealTimeData
 import com.ixam97.carStatsViewer.database.tripData.DrivingSession
 import com.ixam97.carStatsViewer.liveDataApi.LiveDataApi
