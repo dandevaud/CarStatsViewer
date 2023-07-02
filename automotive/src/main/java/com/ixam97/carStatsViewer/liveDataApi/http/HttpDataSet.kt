@@ -35,5 +35,11 @@ data class HttpDataSet(
     val used_soc_energy: Double?,
     val driven_distance: Double?,
     val note: String?,
-    val last_edited_epoch_time: Long?
+    val last_edited_epoch_time: Long?,
+
+    // Delta Values
+    val powerUsed: Double?,
+    val traveledDistance: Float?,
+    val timeSpanPower: Long? ,
+    val timeSpanDistance: Long?,
 )

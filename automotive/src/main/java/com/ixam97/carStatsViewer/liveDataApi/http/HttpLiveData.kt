@@ -11,6 +11,7 @@ import com.ixam97.carStatsViewer.CarStatsViewer
 import com.ixam97.carStatsViewer.R
 import com.ixam97.carStatsViewer.appPreferences.AppPreferences
 import com.ixam97.carStatsViewer.dataCollector.DrivingState
+import com.ixam97.carStatsViewer.dataProcessor.DeltaData
 import com.ixam97.carStatsViewer.dataProcessor.RealTimeData
 import com.ixam97.carStatsViewer.database.tripData.DrivingSession
 import com.ixam97.carStatsViewer.liveDataApi.LiveDataApi
@@ -117,7 +118,7 @@ class HttpLiveData (
         })
     }
 
-    override fun sendNow(realTimeData: RealTimeData, drivingSession: DrivingSession?) {
+    override fun sendNow(realTimeData: RealTimeData, drivingSession: DrivingSession?, deltaData: DeltaData?) {
 
         if (!AppPreferences(CarStatsViewer.appContext).httpLiveDataEnabled) {
             connectionStatus = ConnectionStatus.UNUSED
@@ -162,7 +163,13 @@ class HttpLiveData (
                     drivingSession?.used_soc_energy,
                     drivingSession?.driven_distance,
                     drivingSession?.note,
-                    drivingSession?.last_edited_epoch_time
+                    drivingSession?.last_edited_epoch_time,
+
+                    // DeltaValues
+                    deltaData?.powerUsed,
+                    deltaData?.traveledDistance,
+                    deltaData?.timeSpanPower,
+                    deltaData?.timeSpanDistance,
                 )
             )
         }

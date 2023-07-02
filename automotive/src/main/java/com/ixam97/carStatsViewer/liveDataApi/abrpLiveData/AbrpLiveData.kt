@@ -11,6 +11,7 @@ import com.ixam97.carStatsViewer.utils.InAppLogger
 import com.ixam97.carStatsViewer.R
 import com.ixam97.carStatsViewer.appPreferences.AppPreferences
 import com.ixam97.carStatsViewer.dataCollector.DrivingState
+import com.ixam97.carStatsViewer.dataProcessor.DeltaData
 import com.ixam97.carStatsViewer.dataProcessor.RealTimeData
 import com.ixam97.carStatsViewer.database.tripData.DrivingSession
 import org.json.JSONObject
@@ -138,7 +139,7 @@ class AbrpLiveData (
         tokenDialog.show()
     }
 
-    override fun sendNow(realTimeData: RealTimeData, drivingSession: DrivingSession?) {
+    override fun sendNow(realTimeData: RealTimeData, drivingSession: DrivingSession?, deltaData: DeltaData?) {
         if (!AppPreferences(CarStatsViewer.appContext).abrpUseApi) {
             connectionStatus = ConnectionStatus.UNUSED
             return
