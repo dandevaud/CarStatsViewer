@@ -4,6 +4,8 @@ import com.ixam97.carStatsViewer.CarStatsViewer
 import com.ixam97.carStatsViewer.Defines
 import com.ixam97.carStatsViewer.carPropertiesClient.CarProperties
 import com.ixam97.carStatsViewer.carPropertiesClient.CarPropertiesData
+import com.ixam97.carStatsViewer.dataCollector.DrivingState
+import com.ixam97.carStatsViewer.dataCollector.IgnitionState
 import com.ixam97.carStatsViewer.utils.TimeTracker
 import com.ixam97.carStatsViewer.database.tripData.*
 import com.ixam97.carStatsViewer.emulatorMode
@@ -75,12 +77,6 @@ class DataProcessor {
             _realTimeDataFlow.value = value
         }
 
-    var deltaData = DeltaData()
-        private set(value) {
-            field = value
-            _deltaDataFlow.value = value
-        }
-
     // private var chargingTripData = ChargingTripData()
     //     set(value) {
     //         field = value
@@ -89,9 +85,7 @@ class DataProcessor {
 
 
     private val _realTimeDataFlow = MutableStateFlow(realTimeData)
-    private val _deltaDataFlow = MutableStateFlow(deltaData)
     val realTimeDataFlow = _realTimeDataFlow.asStateFlow()
-    val deltaDataFlow = _deltaDataFlow.asStateFlow();
 
     private val _selectedSessionDataFlow = MutableStateFlow<DrivingSession?>(null)
     val selectedSessionDataFlow = _selectedSessionDataFlow.asStateFlow()
@@ -170,7 +164,8 @@ class DataProcessor {
             ambientTemperature = if (carPropertiesData.CurrentAmbientTemperature.value == null) null else (carPropertiesData.CurrentAmbientTemperature.value as Float?)?: 0f,
             selectedGear = if (carPropertiesData.CurrentGear.value == null) null else (carPropertiesData.CurrentGear.value as Int?)?: 0,
             ignitionState = if (carPropertiesData.CurrentIgnitionState.value == null) null else (carPropertiesData.CurrentIgnitionState.value as Int?)?: 0,
-            chargePortConnected = if (carPropertiesData.ChargePortConnected.value == null) null else (carPropertiesData.ChargePortConnected.value as Boolean?)?: false
+            chargePortConnected = if (carPropertiesData.ChargePortConnected.value == null) null else (carPropertiesData.ChargePortConnected.value as Boolean?)?: false,
+            timestamp = if (carPropertiesData.BatteryLevel.timestamp == null) null else (carPropertiesData.BatteryLevel.timestamp as Long?)?: 0L,
         )
 
         if (!realTimeData.isInitialized() || !staticVehicleData.isInitialized()) {
@@ -198,14 +193,12 @@ class DataProcessor {
     private fun speedUpdate() {
         if (carPropertiesData.CurrentSpeed.isInitialValue) {
             InAppLogger.w("[NEO] Dropped speed value, flagged as initial")
-            deltaData = deltaData.copy( traveledDistance = null, timeSpanDistance = null)
 
             return
         }
         if (timestampSynchronizer.isSynced()){
             if (timestampSynchronizer.getSystemTimeFromNanosTimestamp(carPropertiesData.CurrentSpeed.timestamp) < System.currentTimeMillis() - 500) {
-                deltaData = deltaData.copy( traveledDistance = null, timeSpanDistance = null)
-                // InAppLogger.w("[NEO] Dropped speed value, timestamp too old. Time delta: ${timestampSynchronizer.getSystemTimeFromNanosTimestamp(carPropertiesData.CurrentSpeed.timestamp) - System.currentTimeMillis()}")
+               // InAppLogger.w("[NEO] Dropped speed value, timestamp too old. Time delta: ${timestampSynchronizer.getSystemTimeFromNanosTimestamp(carPropertiesData.CurrentSpeed.timestamp) - System.currentTimeMillis()}")
                 return
             }
         }
@@ -214,7 +207,6 @@ class DataProcessor {
             val distanceDelta = (carPropertiesData.CurrentSpeed.value as Float).absoluteValue * (carPropertiesData.CurrentSpeed.timeDelta / 1_000_000_000f)
             pointDrivenDistance += distanceDelta
             valueDrivenDistance += distanceDelta
-            deltaData = deltaData.copy( traveledDistance = distanceDelta, timeSpanDistance = carPropertiesData.CurrentSpeed.timeDelta)
 
 
             if (pointDrivenDistance >= Defines.PLOT_DISTANCE_INTERVAL)
@@ -240,15 +232,12 @@ class DataProcessor {
         if (emulatorMode) return /** skip if run in emulator, see speedUpdate() */
         if (carPropertiesData.CurrentPower.isInitialValue) {
             InAppLogger.w("[NEO] Dropped power value, flagged as initial")
-            deltaData = deltaData.copy( powerUsed = null, timeSpanPower = null );
 
             return
         }
         if (timestampSynchronizer.isSynced()){
             if (timestampSynchronizer.getSystemTimeFromNanosTimestamp(carPropertiesData.CurrentPower.timestamp) < System.currentTimeMillis() - 500) {
                 InAppLogger.w("[NEO] Dropped power value, timestamp too old")
-                deltaData = deltaData.copy( powerUsed = null, timeSpanPower = null );
-
                 return
             }
         }
@@ -257,8 +246,6 @@ class DataProcessor {
             val energyDelta = emulatorPowerSign * (carPropertiesData.CurrentPower.value as Float) / 1_000f * (carPropertiesData.CurrentPower.timeDelta / 3.6E12)
             pointUsedEnergy += energyDelta
             valueUsedEnergy += energyDelta
-            deltaData = deltaData.copy( powerUsed = energyDelta, timeSpanPower = carPropertiesData.CurrentPower.timeDelta );
-
             // if (realTimeData.drivingState == DrivingState.CHARGE) {
             //     if (pointUsedEnergy.absoluteValue > Defines.PLOT_ENERGY_INTERVAL)
             //         updateChargingDataPoint()
@@ -434,6 +421,22 @@ class DataProcessor {
                 it.value.stop()
             }
         }
+    }
+
+    suspend fun getDrivePointDatasBetween(startEpoch: Long, endEpoch: Long): DeltaData {
+        var drivingPointList = CarStatsViewer.tripDataSource.getDrivingPointsBetween(startEpoch, endEpoch);
+        var delta = DeltaData(0f,0f,0L);
+
+        for (drivingPoint in drivingPointList) {
+            delta = delta.copy(
+                powerUsed = delta.powerUsed.plus(drivingPoint.energy_delta),
+                traveledDistance = delta.traveledDistance.plus(drivingPoint.distance_delta)
+            )
+        }
+        delta =  delta.copy(
+            timeSpan = drivingPointList.maxWith(Comparator.comparingLong{it. driving_point_epoch_time}).driving_point_epoch_time.minus(drivingPointList.minWith(Comparator.comparingLong{it. driving_point_epoch_time}).driving_point_epoch_time));
+        return delta;
+
     }
 
     /** Update data points when driving */

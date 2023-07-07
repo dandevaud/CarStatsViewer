@@ -38,8 +38,7 @@ data class HttpDataSet(
     val last_edited_epoch_time: Long?,
 
     // Delta Values
-    val powerUsed: Double?,
+    val powerUsed: Float?,
     val traveledDistance: Float?,
-    val timeSpanPower: Long? ,
-    val timeSpanDistance: Long?,
+    val timeSpan: Long? ,
 )

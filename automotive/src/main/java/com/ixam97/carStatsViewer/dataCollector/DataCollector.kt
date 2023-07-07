@@ -27,7 +27,7 @@ import kotlin.system.exitProcess
 class DataCollector: Service() {
 
     companion object {
-        const val LIVE_DATA_TASK_INTERVAL = 5_000L
+        const val LIVE_DATA_TASK_INTERVAL = 2_000L
     }
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -137,7 +137,7 @@ class DataCollector: Service() {
                 serviceScope,
                 realTimeData = { CarStatsViewer.dataProcessor.realTimeData },
                 drivingSession = { CarStatsViewer.dataProcessor.selectedSessionDataFlow?.value },
-                deltaData = { CarStatsViewer.dataProcessor.deltaData},
+                dataProcessor = CarStatsViewer.dataProcessor,
                 LIVE_DATA_TASK_INTERVAL
             ).catch { e -> InAppLogger.e("[NEO] requestFlow: ${e.message}") }
             .launchIn(serviceScope)
@@ -147,7 +147,7 @@ class DataCollector: Service() {
                 serviceScope,
                 realTimeData = { CarStatsViewer.dataProcessor.realTimeData },
                 drivingSession = { CarStatsViewer.dataProcessor.selectedSessionDataFlow?.value },
-                deltaData = { CarStatsViewer.dataProcessor.deltaData},
+                dataProcessor = CarStatsViewer.dataProcessor,
                 LIVE_DATA_TASK_INTERVAL
             ).catch { e -> InAppLogger.e("[NEO] requestFlow: ${e.message}") }
             .launchIn(serviceScope)
