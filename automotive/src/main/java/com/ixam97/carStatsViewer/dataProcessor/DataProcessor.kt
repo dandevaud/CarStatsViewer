@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 
@@ -33,6 +34,8 @@ class DataProcessor {
 
     private var pointDrivenDistance: Double = 0.0
     private var pointUsedEnergy: Double = 0.0
+    private var pointTime: Long = 0L
+
     private var valueDrivenDistance: Double = 0.0
     private var valueUsedEnergy: Double = 0.0
 
@@ -162,7 +165,7 @@ class DataProcessor {
             ambientTemperature = if (carPropertiesData.CurrentAmbientTemperature.value == null) null else (carPropertiesData.CurrentAmbientTemperature.value as Float?)?: 0f,
             selectedGear = if (carPropertiesData.CurrentGear.value == null) null else (carPropertiesData.CurrentGear.value as Int?)?: 0,
             ignitionState = if (carPropertiesData.CurrentIgnitionState.value == null) null else (carPropertiesData.CurrentIgnitionState.value as Int?)?: 0,
-            chargePortConnected = if (carPropertiesData.ChargePortConnected.value == null) null else (carPropertiesData.ChargePortConnected.value as Boolean?)?: false
+             chargePortConnected = if (carPropertiesData.ChargePortConnected.value == null) null else (carPropertiesData.ChargePortConnected.value as Boolean?)?: false
         )
 
         if (!realTimeData.isInitialized() || !staticVehicleData.isInitialized()) {
@@ -199,22 +202,27 @@ class DataProcessor {
             return
         //}
         }
+
         if (carPropertiesData.CurrentSpeed.timeDelta > 0 && (realTimeData.drivingState == DrivingState.DRIVE || (realTimeData.drivingState == DrivingState.CHARGE && emulatorMode))) {
             // if (!timestampSynchronizer.isSynced()) timestampSynchronizer.sync(System.currentTimeMillis(), carPropertiesData.CurrentSpeed.timestamp)
-            val distanceDelta = (carPropertiesData.CurrentSpeed.value as Float).absoluteValue * (carPropertiesData.CurrentSpeed.timeDelta / 1_000_000_000f)
+            val distanceDelta = (carPropertiesData.CurrentSpeed.lastValue as Float).absoluteValue * (carPropertiesData.CurrentSpeed.timeDelta / 1_000_000_000f)
             pointDrivenDistance += distanceDelta
             valueDrivenDistance += distanceDelta
+            pointTime += carPropertiesData.CurrentSpeed.timeDelta
 
-            if (pointDrivenDistance >= Defines.PLOT_DISTANCE_INTERVAL)
-                //updateDrivingDataPoint(timestamp = timestampSynchronizer.getSystemTimeFromNanosTimestamp(carPropertiesData.CurrentSpeed.timestamp))
+            val speedToOrFromZero = when {
+                carPropertiesData.CurrentSpeed.value as Float == 0f && carPropertiesData.CurrentSpeed.lastValue as Float != 0f -> true
+                carPropertiesData.CurrentSpeed.value as Float != 0f && carPropertiesData.CurrentSpeed.lastValue as Float == 0f -> true
+                else -> false
+            }
+
+            if (pointDrivenDistance >= Defines.PLOT_DISTANCE_INTERVAL || speedToOrFromZero || TimeUnit.NANOSECONDS.toSeconds(pointTime) > 5) {
                 updateDrivingDataPoint()
-                // Put this else here to make sure only one of these functions is executed
-            // else if (valueDrivenDistance >= Defines.PLOT_DISTANCE_INTERVAL / 2)
-            //    updateTripDataValues(DrivingState.DRIVE)
+            }
 
             /** only relevant in emulator since power is not updated periodically */
             if (emulatorMode) {
-                val energyDelta = emulatorPowerSign * (carPropertiesData.CurrentPower.value as Float) / 1_000f * (carPropertiesData.CurrentSpeed.timeDelta / 3.6E12)
+                val energyDelta = emulatorPowerSign * (carPropertiesData.CurrentPower.lastValue as Float) / 1_000f * (carPropertiesData.CurrentSpeed.timeDelta / 3.6E12)
                 pointUsedEnergy += energyDelta
                 valueUsedEnergy += energyDelta
 
@@ -240,7 +248,7 @@ class DataProcessor {
         // }
 
         if (carPropertiesData.CurrentPower.timeDelta > 0 && (realTimeData.drivingState == DrivingState.DRIVE || realTimeData.drivingState == DrivingState.CHARGE)) {
-            val energyDelta = emulatorPowerSign * (carPropertiesData.CurrentPower.value as Float) / 1_000f * (carPropertiesData.CurrentPower.timeDelta / 3.6E12)
+            val energyDelta = emulatorPowerSign * (carPropertiesData.CurrentPower.lastValue as Float) / 1_000f * (carPropertiesData.CurrentPower.timeDelta / 3.6E12)
             pointUsedEnergy += energyDelta
             valueUsedEnergy += energyDelta
 
@@ -401,7 +409,7 @@ class DataProcessor {
         if (drivingState == DrivingState.DRIVE && oldDrivingState != DrivingState.DRIVE) {
             val lastDriveTime = CarStatsViewer.tripDataSource.getLatestDrivingPoint()?.driving_point_epoch_time
             if (lastDriveTime != null) {
-                if (Date().month != Date(lastDriveTime).month)
+                if (Date(). month != Date(lastDriveTime).month)
                     resetTrip(TripType.MONTH, oldDrivingState)
                 if (lastDriveTime < (System.currentTimeMillis() - Defines.AUTO_RESET_TIME))
                     resetTrip(TripType.AUTO, oldDrivingState)
@@ -421,12 +429,36 @@ class DataProcessor {
         }
     }
 
+    suspend fun getDrivePointDeltaBetween(
+        startEpoch: Long? = null,
+        endEpoch: Long? = null
+    ): DeltaData {
+        val drivingPointList = CarStatsViewer.tripDataSource.getDrivingPointsBetween(
+            startEpoch ?: Long.MIN_VALUE,
+            endEpoch ?: Long.MAX_VALUE
+        );
+
+        return when {
+            drivingPointList.isEmpty() -> DeltaData(refEpoch = startEpoch)
+            startEpoch == null -> DeltaData(refEpoch = drivingPointList.maxOf { it.driving_point_epoch_time } + 1)
+            else -> DeltaData(
+                drivingPointList.map { it.energy_delta }.sum(),
+                drivingPointList.map { it.distance_delta }.sum(),
+                startEpoch,
+                drivingPointList.maxOf { it.driving_point_epoch_time },
+                drivingPointList.maxOf { it.driving_point_epoch_time } + 1
+            )
+        }
+    }
+
     /** Update data points when driving */
     private fun updateDrivingDataPoint(markerType: Int? = null, timestamp: Long? = null): Job {
         val mUsedEnergy = pointUsedEnergy
         pointUsedEnergy = 0.0
         val mDrivenDistance = pointDrivenDistance
         pointDrivenDistance = 0.0
+
+        pointTime = 0L
 
         updateTripDataValues(DrivingState.DRIVE) // let's put this outside of the coroutine in the hope of fixing this stupid difference between point and trip values...
 
@@ -500,7 +532,7 @@ class DataProcessor {
      * Update driving trip data flow for UI.
      */
     private fun newDrivingDeltas(distanceDelta: Double, energyDelta: Double) {
-        localSessions.forEachIndexed {index, localSession ->
+        localSessions.forEachIndexed { index, localSession ->
             val drivingPoints = localSession.drivingPoints
             localSessions[index] = localSession.copy(
                 drive_time = timerMap[localSession.session_type]?.getTime()?:0L,
@@ -509,10 +541,9 @@ class DataProcessor {
                 last_edited_epoch_time = System.currentTimeMillis()
             )
             localSessions[index].drivingPoints = drivingPoints
-            if (localSession.session_type == CarStatsViewer.appPreferences.mainViewTrip + 1) {
-                _selectedSessionDataFlow.value = localSessions[index]
-            }
         }
+
+        _selectedSessionDataFlow.value = localSessions.last { it.session_type == CarStatsViewer.appPreferences.mainViewTrip + 1 }
     }
 
     private suspend fun writeTripsToDatabase() {
@@ -574,7 +605,7 @@ class DataProcessor {
             //     InAppLogger.w("[NEO] Power value is too old!")
             } else {
                 // while ((!emulatorMode && timestampSynchronizer.getSystemTimeFromNanosTimestamp(carPropertiesData.CurrentPower.timestamp) < System.currentTimeMillis() - 500) || (emulatorMode && timestampSynchronizer.getSystemTimeFromNanosTimestamp(carPropertiesData.CurrentSpeed.timestamp) < System.currentTimeMillis() - 500)) {
-                while ((!emulatorMode && carPropertiesData.CurrentPower.timestamp < System.nanoTime() - 500_000_000) || (emulatorMode && carPropertiesData.CurrentSpeed.timestamp < System.nanoTime() - 500_000_000)) {
+                  while ((!emulatorMode && carPropertiesData.CurrentPower.timestamp < System.nanoTime() - 500_000_000) || (emulatorMode && carPropertiesData.CurrentSpeed.timestamp < System.nanoTime() - 500_000_000)) {
                     InAppLogger.w("[NEO] Power value is too old!")
                     delay(250)
                 }

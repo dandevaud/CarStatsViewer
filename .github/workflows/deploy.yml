@@ -1,0 +1,74 @@
+name: Deploy
+on:
+  push:
+    branches:
+      - active_development
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Replace Name Space
+        uses: mingjun97/file-regex-replace@v1
+        with:
+           regex: 'com\.ixam97\.carStatsViewer(_dev|Dev)?'
+           replacement: '${{ vars.PACKAGE }}'
+      - name: Add ABRP ApiKey
+        uses: mingjun97/file-regex-replace@v1
+        with:
+          regex: '<resources>'
+          replacement: '<resources>\n    <string name="abrp_api_key" translatable="false">${{ secrets.ABRP_API_KEY }}</string>'
+          include: automotive/src/main/res/values/strings.xml
+      - name: Change Name
+        uses: mingjun97/file-regex-replace@v1
+        with:
+          regex: 'Car Stats Viewer \(Dev\)'
+          replacement: 'Car Stats Viewer'
+          include: automotive/src/main/res/values/strings.xml
+      - name: Set Version Code
+        run: echo "VERSION_CODE=$(date +'%s')" >> $GITHUB_ENV
+      - name: Modify Version Code
+        uses: mingjun97/file-regex-replace@v1
+        with:
+           regex: 'versionCode [0-9]+'
+           replacement: 'versionCode ${{ env.VERSION_CODE }}'
+           include: 'automotive/build.gradle'
+      - name: Set Version Name
+        run: echo "VERSION_NAME=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
+      - name: Modify Version Name
+        uses: mingjun97/file-regex-replace@v1
+        with:
+           regex: 'versionName \"[^\"]+\"'
+           replacement: 'versionName "${{ env.VERSION_NAME }}"'
+           include: 'automotive/build.gradle'
+      - name: set up JDK 17
+        uses: actions/setup-java@v1
+        with:
+          java-version: 17
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+      - name: Build
+        run: ./gradlew build
+      - name: Assemble Release Bundle
+        run: |
+          ./gradlew bundleRelease
+      - name: Sign Release
+        uses: r0adkll/sign-android-release@v1
+        with:
+          releaseDirectory: automotive/build/outputs/bundle/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+      - name: Create service_account.json
+        run: echo '${{ secrets.SERVICE_ACCOUNT_JSON }}' > service_account.json
+      - name: Deploy
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJson: service_account.json
+          packageName: ${{ vars.PACKAGE }}
+          releaseFiles: automotive/build/outputs/bundle/release/automotive-release.aab
+          track: automotive:internal
+          status: draft

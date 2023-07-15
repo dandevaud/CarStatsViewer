@@ -15,5 +15,6 @@ class PlotLineConfiguration(
     var DimensionSmoothing: Float? = null,
     var DimensionSmoothingType: PlotDimensionSmoothingType? = null,
     var DimensionSmoothingHighlightMethod: PlotHighlightMethod? = null,
-    var SessionGapRendering : PlotSessionGapRendering? = null
+    var SessionGapRendering : PlotSessionGapRendering? = null,
+    var MinMaxRendering : Boolean = false
 )

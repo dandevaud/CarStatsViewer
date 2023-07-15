@@ -36,7 +36,7 @@ import kotlin.math.roundToInt
 
 class MainActivity : FragmentActivity() {
     companion object {
-        const val DISTANCE_TRIP_DIVIDER = 5_000L
+        const val DISTANCE_TRIP_DIVIDER = 1_000L
         const val CONSUMPTION_DISTANCE_RESTRICTION = 10_000L
     }
 
@@ -59,7 +59,7 @@ class MainActivity : FragmentActivity() {
 
     private val chargePlotLine = PlotLine(
         PlotLineConfiguration(
-            PlotRange(0f, 20f, 0f, 160f, 20f),
+            PlotRange(0f, 5f, 0f, 160f, 5f),
             PlotLineLabelFormat.FLOAT,
             PlotHighlightMethod.AVG_BY_TIME,
             "kW"
@@ -208,38 +208,35 @@ class MainActivity : FragmentActivity() {
                         neoChargedEnergy = it.charged_energy
                         neoChargeTime = it.chargeTime
                     }
-                    chargingSession?.chargingPoints?.let { chargingPoints ->
-                        var sizeDelta = chargingPoints.size - chargePlotLine.getDataPointsSize()
-
-                        // InAppLogger.d("[NEO] Updating charging plot. Size delta: $sizeDelta")
-
-                        chargePlotLine.reset()
-                        chargePlotLine.addDataPoints(DataConverters.chargePlotLineFromChargingPoints(chargingPoints))
-                        main_charge_plot.dimensionRestriction = TimeUnit.MINUTES.toMillis((TimeUnit.MILLISECONDS.toMinutes(chargingSession.chargeTime) / 5) + 1) * 5 + 1
-                        main_charge_plot.invalidate()
-
-                        if (sizeDelta in 1..9 && chargingPoints.last().point_marker_type == null) {
-                            while (sizeDelta > 0) {
-                                val prevChargingPoint = if (chargePlotLine.getDataPointsSize() > 0) {
-                                    chargePlotLine.getDataPoints(PlotDimensionX.TIME).last()
-                                } else null
-                                chargePlotLine.addDataPoint(
-                                    DataConverters.chargePlotLineItemFromChargingPoint(
-                                        chargingPoints[chargingPoints.size - sizeDelta],
-                                        prevChargingPoint
-                                    )
-                                )
-                                sizeDelta --
+                    chargingSession?.chargingPoints?.let { points ->
+                        val startIndex = chargePlotLine.getDataPointsSize()
+                        when {
+                            startIndex == 0 && points.isEmpty() -> {
+                                chargePlotLine.reset()
                             }
-                            main_charge_plot.dimensionRestriction = TimeUnit.MINUTES.toMillis((TimeUnit.MILLISECONDS.toMinutes(chargingSession.chargeTime) / 5) + 1) * 5 + 1
-                            main_charge_plot.invalidate()
-                        } else /*if (sizeDelta > 10 || sizeDelta < 0)*/ {
-                            /** refresh entire plot for large numbers of new data Points */
-                            chargePlotLine.reset()
-                            chargePlotLine.addDataPoints(DataConverters.chargePlotLineFromChargingPoints(chargingPoints))
-                            main_charge_plot.dimensionRestriction = TimeUnit.MINUTES.toMillis((TimeUnit.MILLISECONDS.toMinutes(chargingSession.chargeTime) / 5) + 1) * 5 + 1
-                            main_charge_plot.invalidate()
+                            startIndex == 0 -> {
+                                chargePlotLine.reset()
+                                chargePlotLine.addDataPoints(DataConverters.chargePlotLineFromChargingPoints(points))
+                            }
+                            startIndex != points.size -> {
+                                var prevDrivingPoint = chargePlotLine.lastItem()
+
+                                for (i in points.indices) {
+                                    if (i < startIndex) continue
+
+                                    prevDrivingPoint = chargePlotLine.addDataPoint(
+                                        DataConverters.chargePlotLineItemFromChargingPoint(
+                                            points[i],
+                                            prevDrivingPoint
+                                        )
+                                    ) ?: prevDrivingPoint
+                                }
+                            }
                         }
+
+                        main_charge_plot.dimensionRestriction = TimeUnit.MINUTES.toMillis((TimeUnit.MILLISECONDS.toMinutes(chargingSession.chargeTime) / 5) + 1) * 5 + 1
+                        main_charge_plot.dimensionRestrictionMin = TimeUnit.MINUTES.toMillis(1)
+                        main_charge_plot.invalidate()
                     }
                 }
             }
@@ -275,26 +272,25 @@ class MainActivity : FragmentActivity() {
                     neoSelectedTripId = session?.driving_session_id
 
                     /** Add new plot points */
-
-                    session?.drivingPoints?.let { drivingPoints ->
+                    session?.drivingPoints?.let { points ->
                         val startIndex = consumptionPlotLine.getDataPointsSize()
                         when {
-                            startIndex == 0 && drivingPoints.isEmpty() -> {
+                            startIndex == 0 && points.isEmpty() -> {
                                 consumptionPlotLine.reset()
                             }
                             startIndex == 0 -> {
                                 consumptionPlotLine.reset()
-                                consumptionPlotLine.addDataPoints(DataConverters.consumptionPlotLineFromDrivingPoints(drivingPoints, 10_000f))
+                                consumptionPlotLine.addDataPoints(DataConverters.consumptionPlotLineFromDrivingPoints(points, 10_000f))
                             }
-                            startIndex != drivingPoints.size -> {
+                            startIndex != points.size -> {
                                 var prevDrivingPoint = consumptionPlotLine.lastItem()
 
-                                for (i in drivingPoints.indices) {
+                                for (i in points.indices) {
                                     if (i < startIndex) continue
 
                                     prevDrivingPoint = consumptionPlotLine.addDataPoint(
                                         DataConverters.consumptionPlotLineItemFromDrivingPoint(
-                                            drivingPoints[i],
+                                            points[i],
                                             prevDrivingPoint
                                         )
                                     ) ?: prevDrivingPoint
@@ -304,35 +300,6 @@ class MainActivity : FragmentActivity() {
 
                         main_consumption_plot.invalidate()
                     }
-
-                    /*
-                    session?.drivingPoints?.let { drivingPoints ->
-                        var sizeDelta = drivingPoints.size - consumptionPlotLine.getDataPointsSize()
-                        // InAppLogger.d("Size delta: $sizeDelta (${drivingPoints.size} vs. ${consumptionPlotLine.getDataPointsSize()}, $nonFiniteCounter non-finite)")
-                        if (sizeDelta in 1..9) {
-                            while (sizeDelta > 0) {
-                                val prevDrivingPoint = if (consumptionPlotLine.getDataPointsSize() > 0) {
-                                    consumptionPlotLine.getDataPoints(PlotDimensionX.DISTANCE).last()
-                                } else null
-                                consumptionPlotLine.addDataPoint(
-                                    DataConverters.consumptionPlotLineItemFromDrivingPoint(
-                                        drivingPoints[drivingPoints.size - sizeDelta],
-                                        prevDrivingPoint
-                                    )
-                                )
-                                sizeDelta --
-                            }
-                            main_consumption_plot.invalidate()
-                        } else if (sizeDelta > 10) {
-                            /** refresh entire plot for large numbers of new data Points */
-                            consumptionPlotLine.reset()
-                            consumptionPlotLine.addDataPoints(DataConverters.consumptionPlotLineFromDrivingPoints(drivingPoints, 10_000f))
-                            main_consumption_plot.invalidate()
-                        }
-                    }
-
-                     */
-                    // updateActivity()
                 }
             }
         }
@@ -407,23 +374,18 @@ class MainActivity : FragmentActivity() {
             main_consumption_gage.gageUnit = "Wh/%s".format(distanceUnit.unit())
             main_consumption_gage.minValue = distanceUnit.asUnit(-300f)
             main_consumption_gage.maxValue = distanceUnit.asUnit(600f)
-            consumptionPlotLine.Configuration.Unit = "Wh/%s".format(distanceUnit.unit())
-            consumptionPlotLine.Configuration.LabelFormat = PlotLineLabelFormat.NUMBER
-            consumptionPlotLine.Configuration.Divider = distanceUnit.toFactor() * 1f
 
         } else {
             main_consumption_gage.gageUnit = "kWh/100%s".format(distanceUnit.unit())
             main_consumption_gage.minValue = distanceUnit.asUnit(-30f)
             main_consumption_gage.maxValue = distanceUnit.asUnit(60f)
-            consumptionPlotLine.Configuration.Unit = "kWh/100%s".format(distanceUnit.unit())
-            consumptionPlotLine.Configuration.LabelFormat = PlotLineLabelFormat.FLOAT
-            consumptionPlotLine.Configuration.Divider = distanceUnit.toFactor() * 10f
         }
 
-        PlotGlobalConfiguration.updateDistanceUnit(distanceUnit)
+        PlotGlobalConfiguration.updateDistanceUnit(distanceUnit, consumptionUnit)
         main_consumption_plot.dimensionRestriction = distanceUnit.asUnit(
             CONSUMPTION_DISTANCE_RESTRICTION
         )
+        main_consumption_plot.dimensionRestrictionMin = appPreferences.distanceUnit.asUnit(DISTANCE_TRIP_DIVIDER)
         main_consumption_plot.invalidate()
     }
 
@@ -447,7 +409,7 @@ class MainActivity : FragmentActivity() {
             3 -> getString(R.string.main_secondary_axis, getString(R.string.plot_dimensionY_ALTITUDE))
             else -> getString(R.string.main_secondary_axis, "-")
         }
-        main_consumption_plot.dimensionYSecondary = PlotDimensionY.IndexMap[secondaryConsumptionDimension]
+        main_consumption_plot.dimensionYSecondary = PlotDimensionY.IndexMap[secondaryConsumptionDimension] ?: PlotDimensionY.CONSUMPTION
         main_consumption_plot.invalidate()
     }
 
@@ -535,16 +497,18 @@ class MainActivity : FragmentActivity() {
         PlotGlobalConfiguration.updateDistanceUnit(appPreferences.distanceUnit)
 
         main_consumption_plot.reset()
+        main_consumption_plot.dimensionYPrimary = PlotDimensionY.CONSUMPTION
         main_consumption_plot.addPlotLine(consumptionPlotLine, consumptionPlotLinePaint)
 
         main_consumption_plot.dimension = PlotDimensionX.DISTANCE
         main_consumption_plot.dimensionRestriction = appPreferences.distanceUnit.asUnit(
             CONSUMPTION_DISTANCE_RESTRICTION
         )
+        main_consumption_plot.dimensionRestrictionMin = appPreferences.distanceUnit.asUnit(DISTANCE_TRIP_DIVIDER)
         main_consumption_plot.dimensionSmoothing = 0.02f
         main_consumption_plot.dimensionSmoothingType = PlotDimensionSmoothingType.PERCENTAGE
         main_consumption_plot.sessionGapRendering = PlotSessionGapRendering.JOIN
-        main_consumption_plot.dimensionYSecondary = PlotDimensionY.IndexMap[appPreferences.secondaryConsumptionDimension]
+        main_consumption_plot.dimensionYSecondary = PlotDimensionY.IndexMap[appPreferences.secondaryConsumptionDimension] ?: PlotDimensionY.CONSUMPTION
 
         main_consumption_plot.invalidate()
 

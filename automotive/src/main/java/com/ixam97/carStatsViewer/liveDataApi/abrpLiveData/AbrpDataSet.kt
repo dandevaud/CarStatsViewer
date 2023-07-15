@@ -6,8 +6,8 @@ data class AbrpDataSet(
     val isCharging: Boolean,
     val speed: Float,
     val isParked: Boolean,
-    val lat: Double?,
-    val lon: Double?,
-    val alt: Double?,
+    val lat: Float?,
+    val lon: Float?,
+    val alt: Float?,
     val temp: Float
 )

@@ -17,5 +17,22 @@ data class HttpDataSet(
     val alt: Float?,
 
     // ABRP debug
-    val abrpPackage: String? = null
+    val abrpPackage: String? = null,
+
+    var driving_session_id: Long?,
+    val start_epoch_time: Long?,
+    val end_epoch_time: Long?,
+    val session_type: Int?,
+    val drive_time: Long?,
+    val used_energy: Double?,
+    val used_soc: Double?,
+    val used_soc_energy: Double?,
+    val driven_distance: Double?,
+    val note: String?,
+    val last_edited_epoch_time: Long?,
+
+    // Delta Values
+    val powerUsed: Float?,
+    val traveledDistance: Float?,
+    val timeSpan: Long?
 )

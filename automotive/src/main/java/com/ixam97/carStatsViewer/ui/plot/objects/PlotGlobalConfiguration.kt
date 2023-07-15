@@ -11,12 +11,13 @@ object PlotGlobalConfiguration {
             PlotDimensionY.SPEED to PlotLineConfiguration(
                 PlotRange(0f, 40f, 0f, 240f, 40f),
                 PlotLineLabelFormat.NUMBER,
-                PlotHighlightMethod.AVG_BY_TIME,
+                PlotHighlightMethod.AVG_BY_VALUE,
                 "km/h",
                 DimensionSmoothing = 0.005f,
                 DimensionSmoothingType = PlotDimensionSmoothingType.PERCENTAGE,
                 SessionGapRendering = PlotSessionGapRendering.JOIN,
-                DimensionSmoothingHighlightMethod = PlotHighlightMethod.AVG_BY_TIME
+                DimensionSmoothingHighlightMethod = PlotHighlightMethod.AVG_BY_TIME,
+                MinMaxRendering = true
             ),
             PlotDimensionY.DISTANCE to PlotLineConfiguration(
                 PlotRange(),
@@ -45,11 +46,18 @@ object PlotGlobalConfiguration {
                 PlotLineLabelFormat.ALTITUDE,
                 PlotHighlightMethod.AVG_BY_TIME,
                 "m",
-                SessionGapRendering = PlotSessionGapRendering.GAP
-            )
+                SessionGapRendering = PlotSessionGapRendering.GAP,
+                MinMaxRendering = true
+            ),
+            PlotDimensionY.CONSUMPTION to PlotLineConfiguration(
+                PlotRange(-200f, 600f, -200f, 600f, 100f, 0f),
+                PlotLineLabelFormat.NUMBER,
+                PlotHighlightMethod.AVG_BY_VALUE,
+                "Wh/km"
+            ),
         )
 
-    fun updateDistanceUnit(distanceUnit: DistanceUnitEnum) {
+    fun updateDistanceUnit(distanceUnit: DistanceUnitEnum, consumptionUnitFactor: Boolean = false) {
 
         DimensionYConfiguration[PlotDimensionY.SPEED]?.UnitFactor = distanceUnit.asFactor()
         DimensionYConfiguration[PlotDimensionY.SPEED]?.Divider = distanceUnit.asFactor()
@@ -61,5 +69,16 @@ object PlotGlobalConfiguration {
 
         DimensionYConfiguration[PlotDimensionY.ALTITUDE]?.UnitFactor = distanceUnit.asSubFactor()
         DimensionYConfiguration[PlotDimensionY.ALTITUDE]?.Unit = "%s".format(distanceUnit.subUnit())
+
+        if (consumptionUnitFactor) {
+            DimensionYConfiguration[PlotDimensionY.CONSUMPTION]?.Unit = "Wh/%s".format(distanceUnit.unit())
+            DimensionYConfiguration[PlotDimensionY.CONSUMPTION]?.LabelFormat = PlotLineLabelFormat.NUMBER
+            DimensionYConfiguration[PlotDimensionY.CONSUMPTION]?.Divider = distanceUnit.toFactor() * 1f
+        }
+        else {
+            DimensionYConfiguration[PlotDimensionY.CONSUMPTION]?.Unit = "kWh/100%s".format(distanceUnit.unit())
+            DimensionYConfiguration[PlotDimensionY.CONSUMPTION]?.LabelFormat = PlotLineLabelFormat.FLOAT
+            DimensionYConfiguration[PlotDimensionY.CONSUMPTION]?.Divider = distanceUnit.toFactor() * 10f
+        }
     }
 }

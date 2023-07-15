@@ -8,6 +8,9 @@ interface TripDao {
     @Upsert
     fun upsertDrivingPoint(drivingPoint: DrivingPoint)
 
+    @Query("SELECT * FROM DrivingPoint WHERE driving_point_epoch_time BETWEEN :epochStart AND :epochEnd ORDER BY driving_point_epoch_time ASC")
+    fun getDrivingPointsBetween(epochStart: Long, epochEnd: Long) : List<DrivingPoint>
+
     @Query("SELECT * FROM DrivingPoint ORDER BY driving_point_epoch_time DESC LIMIT 1")
     fun getLatestDrivingPoint(): DrivingPoint?
 

@@ -27,7 +27,6 @@ import com.ixam97.carStatsViewer.ui.plot.objects.PlotLineConfiguration
 import com.ixam97.carStatsViewer.ui.plot.objects.PlotRange
 import com.ixam97.carStatsViewer.ui.plot.enums.*
 import com.ixam97.carStatsViewer.utils.DataConverters
-import com.ixam97.carStatsViewer.utils.InAppLogger
 import com.ixam97.carStatsViewer.utils.StringFormatters
 import com.ixam97.carStatsViewer.ui.views.PlotView
 import kotlinx.android.synthetic.main.fragment_summary.*
@@ -51,7 +50,7 @@ class SummaryFragment() : Fragment(R.layout.fragment_summary) {
 
     private var chargePlotLine = PlotLine(
         PlotLineConfiguration(
-            PlotRange(0f, 20f, 0f, 160f, 20f),
+            PlotRange(0f, 5f, 0f, 160f, 5f),
             PlotLineLabelFormat.FLOAT,
             PlotHighlightMethod.AVG_BY_TIME,
             "kW"
@@ -188,20 +187,9 @@ class SummaryFragment() : Fragment(R.layout.fragment_summary) {
     }
 
     private fun setupPlots() {
-
-        if (appPreferences.consumptionUnit) {
-            consumptionPlotLine.Configuration.Unit = "Wh/%s".format(appPreferences.distanceUnit.unit())
-            consumptionPlotLine.Configuration.LabelFormat = PlotLineLabelFormat.NUMBER
-            consumptionPlotLine.Configuration.Divider = appPreferences.distanceUnit.toFactor() * 1f
-        } else {
-            consumptionPlotLine.Configuration.Unit = "kWh/100%s".format(appPreferences.distanceUnit.unit())
-            consumptionPlotLine.Configuration.LabelFormat = PlotLineLabelFormat.FLOAT
-            consumptionPlotLine.Configuration.Divider = appPreferences.distanceUnit.toFactor() * 10f
-        }
-
+        summary_consumption_plot.dimensionYPrimary = PlotDimensionY.CONSUMPTION
         summary_consumption_plot.dimension = PlotDimensionX.DISTANCE
-        summary_consumption_plot.dimensionRestrictionMin = appPreferences.distanceUnit.asUnit(
-            MainActivity.DISTANCE_TRIP_DIVIDER)
+        summary_consumption_plot.dimensionRestrictionMin = appPreferences.distanceUnit.asUnit(MainActivity.DISTANCE_TRIP_DIVIDER)
         summary_consumption_plot.dimensionSmoothing = 0.02f
         summary_consumption_plot.dimensionSmoothingType = PlotDimensionSmoothingType.PERCENTAGE
         summary_consumption_plot.visibleMarkerTypes.add(PlotMarkerType.CHARGE)
@@ -427,6 +415,7 @@ class SummaryFragment() : Fragment(R.layout.fragment_summary) {
         chargePlotLine.addDataPoints(DataConverters.chargePlotLineFromChargingPoints(completedChargingSessions[progress].chargingPoints!!))
 
         summary_charge_plot_view.dimensionRestriction = TimeUnit.MINUTES.toMillis((TimeUnit.MILLISECONDS.toMinutes((completedChargingSessions[progress].end_epoch_time?:0) - completedChargingSessions[progress].start_epoch_time) / 5) + 1) * 5 + 1
+        summary_charge_plot_view.dimensionRestrictionMin = TimeUnit.MINUTES.toMillis(1)
         summary_charge_plot_view.invalidate()
 
 

@@ -26,35 +26,13 @@ class PlotLine(
         else -> dataPoints[dataPoints.size - 1]
     }
 
-    fun addDataPoint(item: Float, epochTime: Long, nanoTime: Long, distance: Float, stateOfCharge: Float, altitude: Float? = null, timeDelta: Long? = null, distanceDelta: Float? = null, stateOfChargeDelta: Float? = null, altitudeDelta: Float? = null, plotLineMarkerType: PlotLineMarkerType? = null, autoMarkerTimeDeltaThreshold: Long? = null): PlotLineItem? {
-        val prev = when (dataPoints[dataPoints.size - 1]?.Marker ?: PlotLineMarkerType.BEGIN_SESSION) {
-            PlotLineMarkerType.BEGIN_SESSION -> dataPoints[dataPoints.size - 1]
-            else -> null
-        }
-
-        return addDataPoint(
-            PlotLineItem(
-            item,
-            epochTime,
-            nanoTime,
-            distance,
-            stateOfCharge,
-            altitude,
-            timeDelta?:(nanoTime - (prev?.NanoTime ?: nanoTime)),
-            distanceDelta?:(distance - (prev?.Distance ?: distance)),
-            stateOfChargeDelta?:(stateOfCharge - (prev?.StateOfCharge ?: stateOfCharge)),
-            altitudeDelta?:(if (altitude == null || prev?.Altitude == null) { null } else { altitude - prev.Altitude!! }),
-            plotLineMarkerType
-        ), autoMarkerTimeDeltaThreshold)
-    }
-
     fun addDataPoint(dataPoint: PlotLineItem, autoMarkerTimeDeltaThreshold: Long? = null): PlotLineItem? {
         val prev = dataPoints[dataPoints.size - 1]
 
         if (dataPoint.Marker == PlotLineMarkerType.BEGIN_SESSION && prev?.Marker == null) {
             prev?.Marker = PlotLineMarkerType.END_SESSION
         }
-        
+
         if (dataPoint.Marker == null && (prev == null || prev.Marker == PlotLineMarkerType.END_SESSION)) {
             dataPoint.Marker = PlotLineMarkerType.BEGIN_SESSION
         }
@@ -71,12 +49,6 @@ class PlotLine(
             if (prev.Value < dataPoint.Value - 1_000) {
                 prev.Value = dataPoint.Value
             }
-        }
-
-        if (dataPoint.Marker == PlotLineMarkerType.BEGIN_SESSION) {
-            dataPoint.TimeDelta = 0L
-            dataPoint.DistanceDelta = 0f
-            dataPoint.StateOfChargeDelta = 0f
         }
 
         return when {
@@ -108,12 +80,12 @@ class PlotLine(
         dataPoints.clear()
     }
 
-    fun getDataPoints(dimension: PlotDimensionX, dimensionRestriction: Long? = null, dimensionShift: Long? = null): List<PlotLineItem> {
+    fun getDataPoints(dimension: PlotDimensionX, dimensionRestriction: Long? = null, dimensionShift: Long? = null, surplus: Boolean = false): List<PlotLineItem> {
         return when {
             dataPoints.isEmpty() || dimensionRestriction == null -> dataPoints.map { it.value }
             else ->  {
-                val min = minDimension(dimension, dimensionRestriction, dimensionShift)
-                val max = maxDimension(dimension, dimensionRestriction, dimensionShift)
+                val min = minDimension(dimension, dimensionRestriction, dimensionShift, surplus)
+                val max = maxDimension(dimension, dimensionRestriction, dimensionShift, surplus)
 
                 getDataPoints (dimension, min, max)
             }
@@ -132,17 +104,17 @@ class PlotLine(
         }
     }
 
-    internal fun minDimension(dimension: PlotDimensionX, dimensionRestriction: Long? = null, dimensionShift: Long? = null): Any? {
+    internal fun minDimension(dimension: PlotDimensionX, dimensionRestriction: Long? = null, dimensionShift: Long? = null, surplus: Boolean = false): Any? {
         return when {
             dataPoints.isEmpty() -> null
             else -> when (dimension) {
                 PlotDimensionX.INDEX -> when(dimensionRestriction) {
                     null -> dataPoints.minOf { it.key }
-                    else -> maxDimension(dimension, dimensionRestriction, dimensionShift) as Int - dimensionRestriction
+                    else -> maxDimension(dimension, dimensionRestriction, dimensionShift) as Int - (if (surplus) 2 * dimensionRestriction else dimensionRestriction)
                 }
                 PlotDimensionX.DISTANCE -> when(dimensionRestriction) {
                     null -> dataPoints.minOf { it.value.Distance }
-                    else -> maxDimension(dimension, dimensionRestriction, dimensionShift) as Float - dimensionRestriction
+                    else -> maxDimension(dimension, dimensionRestriction, dimensionShift) as Float - (if (surplus) 2 * dimensionRestriction else dimensionRestriction)
                 }
                 PlotDimensionX.TIME -> when(dimensionRestriction) {
                     null -> dataPoints.minOf { it.value.EpochTime }
@@ -153,7 +125,7 @@ class PlotLine(
         }
     }
 
-    internal fun maxDimension(dimension: PlotDimensionX, dimensionRestriction: Long? = null, dimensionShift: Long? = null): Any? {
+    internal fun maxDimension(dimension: PlotDimensionX, dimensionRestriction: Long? = null, dimensionShift: Long? = null, surplus: Boolean = false): Any? {
         return when {
             dataPoints.isEmpty() -> null
             else -> when (dimension) {
@@ -167,7 +139,7 @@ class PlotLine(
                 }
                 PlotDimensionX.TIME -> when(dimensionRestriction) {
                     null -> dataPoints.maxOf { it.value.EpochTime }
-                    else -> minDimension(dimension, dimensionRestriction, dimensionShift) as Long + dimensionRestriction
+                    else -> minDimension(dimension, dimensionRestriction, dimensionShift) as Long + (if (surplus) 2 * dimensionRestriction else dimensionRestriction)
                 }
                 PlotDimensionX.STATE_OF_CHARGE -> 100f
             }
@@ -184,7 +156,7 @@ class PlotLine(
 
     fun distanceDimensionMinMax(dimension: PlotDimensionX, min: Any?, max: Any?): Float? {
         if (min == null || max == null) return null
-        
+
         return when (dimension) {
             PlotDimensionX.TIME -> (max as Long - min as Long).toFloat()
             else -> max as Float - min as Float
@@ -272,14 +244,15 @@ class PlotLine(
     }
 
     private fun averageValue(dataPoints: List<PlotLineItem>, averageMethod: PlotHighlightMethod, secondaryDimension: PlotDimensionY? = null): Float? {
-        if (dataPoints.isEmpty() || dataPoints.all { (it.byDimensionY(secondaryDimension)?:0f) == 0f }) return null
+        if (dataPoints.isEmpty()) return null
+        if (dataPoints.all { (it.byDimensionY(secondaryDimension) ?: 0f) == 0f }) return null
         if (dataPoints.size == 1) return dataPoints.first().byDimensionY(secondaryDimension)
 
         val averageValue = when (averageMethod) {
             PlotHighlightMethod.AVG_BY_INDEX -> dataPoints.mapNotNull { it.byDimensionY(secondaryDimension) }.average().toFloat()
             PlotHighlightMethod.AVG_BY_DISTANCE -> {
-                val value = dataPoints.map { (it.DistanceDelta?:0f) * (it.byDimensionY(secondaryDimension)?:0f) }.sum()
-                val distance = dataPoints.map { (it.DistanceDelta?:0f) }.sum()
+                val value = dataPoints.map { (it.DistanceDelta ?: 0f) * (it.byDimensionY(secondaryDimension) ?: 0f) }.sum()
+                val distance = dataPoints.map { (it.DistanceDelta ?: 0f) }.sum()
 
                 when {
                     distance != 0f -> value / distance
@@ -287,8 +260,8 @@ class PlotLine(
                 }
             }
             PlotHighlightMethod.AVG_BY_TIME -> {
-                val value = dataPoints.map { (it.TimeDelta?:0L) * (it.byDimensionY(secondaryDimension)?:0f) }.sum()
-                val distance = dataPoints.sumOf { (it.TimeDelta?:0L) }
+                val value = dataPoints.map { (it.TimeDelta ?: 0L) * (it.byDimensionY(secondaryDimension) ?: 0f) }.sum()
+                val distance = dataPoints.sumOf { (it.TimeDelta ?: 0L) }
 
                 when {
                     distance != 0L -> value / distance
@@ -296,13 +269,16 @@ class PlotLine(
                 }
             }
             PlotHighlightMethod.AVG_BY_STATE_OF_CHARGE -> {
-                val value = dataPoints.map { (it.StateOfChargeDelta?:0f) * (it.byDimensionY(secondaryDimension)?:0f) }.sum()
-                val distance = dataPoints.map { (it.StateOfChargeDelta?:0f) }.sum()
+                val value = dataPoints.map { (it.StateOfChargeDelta ?: 0f) * (it.byDimensionY(secondaryDimension) ?: 0f) }.sum()
+                val distance = dataPoints.map { (it.StateOfChargeDelta ?: 0f) }.sum()
 
                 when {
                     distance != 0f -> value / distance
                     else -> null
                 }
+            }
+            PlotHighlightMethod.AVG_BY_VALUE -> {
+                PlotLineItem.byDimensionY(dataPoints, secondaryDimension)
             }
             else -> null
         }
@@ -351,7 +327,8 @@ class PlotLine(
             PlotHighlightMethod.AVG_BY_INDEX,
             PlotHighlightMethod.AVG_BY_DISTANCE,
             PlotHighlightMethod.AVG_BY_TIME,
-            PlotHighlightMethod.AVG_BY_STATE_OF_CHARGE -> averageValue(dataPoints, inlineHighlightMethod, secondaryDimension)
+            PlotHighlightMethod.AVG_BY_STATE_OF_CHARGE,
+            PlotHighlightMethod.AVG_BY_VALUE -> averageValue(dataPoints, inlineHighlightMethod, secondaryDimension)
             else -> null
         }
     }

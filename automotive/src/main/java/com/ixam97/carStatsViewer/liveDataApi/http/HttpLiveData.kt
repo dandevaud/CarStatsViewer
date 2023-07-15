@@ -12,7 +12,10 @@ import com.ixam97.carStatsViewer.CarStatsViewer
 import com.ixam97.carStatsViewer.R
 import com.ixam97.carStatsViewer.appPreferences.AppPreferences
 import com.ixam97.carStatsViewer.dataProcessor.IgnitionState
+import com.ixam97.carStatsViewer.dataProcessor.DeltaData
+import com.ixam97.carStatsViewer.dataProcessor.DrivingState
 import com.ixam97.carStatsViewer.dataProcessor.RealTimeData
+import com.ixam97.carStatsViewer.database.tripData.DrivingSession
 import com.ixam97.carStatsViewer.liveDataApi.LiveDataApi
 import com.ixam97.carStatsViewer.liveDataApi.abrpLiveData.AbrpLiveData
 import com.ixam97.carStatsViewer.utils.InAppLogger
@@ -22,14 +25,12 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.util.*
+import kotlin.math.roundToInt
 
 
 class HttpLiveData (
     detailedLog : Boolean = true
 ): LiveDataApi("Webhook", R.string.settings_apis_http, detailedLog) {
-
-    var successCounter: Int = 0
-
     private fun addBasicAuth(connection: HttpURLConnection, username: String, password: String) {
         if (username == ""  && password == "") {
             return
@@ -123,7 +124,8 @@ class HttpLiveData (
         })
     }
 
-    override fun sendNow(realTimeData: RealTimeData) {
+    override fun sendNow(realTimeData: RealTimeData, drivingSession: DrivingSession?, deltaData: DeltaData?) {
+
         if (!AppPreferences(CarStatsViewer.appContext).httpLiveDataEnabled) {
             connectionStatus = ConnectionStatus.UNUSED
             return
@@ -134,6 +136,9 @@ class HttpLiveData (
         connectionStatus = try {
             send(
                 HttpDataSet(
+                    apiVersion = 2,
+                    appVersion = BuildConfig.VERSION_NAME,
+
                     timestamp = System.currentTimeMillis(),
                     speed = realTimeData.speed!!,
                     power = realTimeData.power!!,
@@ -150,8 +155,23 @@ class HttpLiveData (
                     // ABRP debug
                     abrpPackage = if (CarStatsViewer.appPreferences.httpLiveDataSendABRPDataset) (CarStatsViewer.liveDataApis[0] as AbrpLiveData).lastPackage else null,
 
-                    appVersion = BuildConfig.VERSION_NAME,
-                    apiVersion = 2
+                    // Session Data
+                    drivingSession?.driving_session_id,
+                    drivingSession?.start_epoch_time,
+                    drivingSession?.end_epoch_time,
+                    drivingSession?.session_type,
+                    drivingSession?.drive_time,
+                    drivingSession?.used_energy,
+                    drivingSession?.used_soc,
+                    drivingSession?.used_soc_energy,
+                    drivingSession?.driven_distance,
+                    drivingSession?.note,
+                    drivingSession?.last_edited_epoch_time,
+
+                    // DeltaValues
+                    deltaData?.powerUsed,
+                    deltaData?.traveledDistance,
+                    deltaData?.timeSpan()
                 )
             )
         } catch (e: java.lang.Exception) {
@@ -171,18 +191,19 @@ class HttpLiveData (
         try {
             val url = URL(AppPreferences(context).httpLiveDataURL) // + "?json=$jsonObject")
             val connection = getConnection(url, username, password)
+
             DataOutputStream(connection.outputStream).apply {
                 writeBytes(liveDataJson)
                 flush()
                 close()
             }
+
             responseCode = connection.responseCode
 
             if (detailedLog) {
                 var logString = "[HTTP] Status: ${connection.responseCode}, Msg: ${connection.responseMessage}, Content:"
                 logString += try {
                     connection.inputStream.bufferedReader().use {it.readText()}
-
                 } catch (e: java.lang.Exception) {
                     "No response content"
                 }
@@ -194,28 +215,25 @@ class HttpLiveData (
             connection.disconnect()
         } catch (e: java.net.SocketTimeoutException) {
             InAppLogger.e("[HTTP] Network timeout error")
-            if (timeout < 30_000) {
-                timeout += 5_000
+            if (timeout < originalInterval * 5) {
+                timeout += originalInterval
                 InAppLogger.w("[HTTP] Interval increased to $timeout ms")
             }
-            successCounter = 0
             return ConnectionStatus.ERROR
         } catch (e: java.lang.Exception) {
-            InAppLogger.e("[HTTP] Connection error")
+            InAppLogger.e("[HTTP] Connection error ${e.message}")
             return ConnectionStatus.ERROR
         }
 
-        if (responseCode != 200) {
+        if (responseCode >= 400) {
             InAppLogger.e("[HTTP] Transmission failed. Status code $responseCode")
             return ConnectionStatus.ERROR
         }
 
-
-        successCounter++
-        if (successCounter >= 5 && timeout > originalInterval) {
-            timeout -= 5_000
+        if (timeout > originalInterval) {
+            timeout -= originalInterval
             InAppLogger.i("[HTTP] Interval decreased to $timeout ms")
-            successCounter = 0
+            return ConnectionStatus.LIMITED
         }
 
         return ConnectionStatus.CONNECTED
