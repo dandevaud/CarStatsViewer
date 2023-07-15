@@ -280,7 +280,7 @@ class MainActivity : FragmentActivity() {
                             }
                             startIndex == 0 -> {
                                 consumptionPlotLine.reset()
-                                consumptionPlotLine.addDataPoints(DataConverters.consumptionPlotLineFromDrivingPoints(points, 10_000f))
+                                consumptionPlotLine.addDataPoints(DataConverters.consumptionPlotLineFromDrivingPoints(points))
                             }
                             startIndex != points.size -> {
                                 var prevDrivingPoint = consumptionPlotLine.lastItem()
