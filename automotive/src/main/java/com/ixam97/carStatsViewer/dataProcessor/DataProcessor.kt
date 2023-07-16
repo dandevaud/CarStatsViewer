@@ -11,7 +11,7 @@ import com.ixam97.carStatsViewer.emulatorPowerSign
 import com.ixam97.carStatsViewer.ui.plot.enums.PlotLineMarkerType
 import com.ixam97.carStatsViewer.utils.InAppLogger
 import com.ixam97.carStatsViewer.utils.Ticker
-// import com.ixam97.carStatsViewer.utils.TimestampSynchronizer
+import com.ixam97.carStatsViewer.utils.TimestampSynchronizer
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,6 +34,7 @@ class DataProcessor {
 
     private var pointDrivenDistance: Double = 0.0
     private var pointUsedEnergy: Double = 0.0
+    private var pointTimestamp: Long = 0L
     private var pointTime: Long = 0L
 
     private var valueDrivenDistance: Double = 0.0
@@ -195,19 +196,17 @@ class DataProcessor {
             InAppLogger.w("[NEO] Dropped speed value, flagged as initial")
             return
         }
-        //if (timestampSynchronizer.isSynced()){
-        //if (timestampSynchronizer.getSystemTimeFromNanosTimestamp(carPropertiesData.CurrentSpeed.timestamp) < System.currentTimeMillis() - 500) {
-        if (carPropertiesData.CurrentSpeed.timestamp < System.nanoTime() - 500_000_000) {
+
+        if (carPropertiesData.CurrentSpeed.timestamp < System.nanoTime() - 2_000_000_000) {
             InAppLogger.w("[NEO] Dropped speed value, timestamp too old. Time delta: ${(System.nanoTime() - carPropertiesData.CurrentSpeed.timestamp)/1_000_000}")
             return
-        //}
         }
 
         if (carPropertiesData.CurrentSpeed.timeDelta > 0 && (realTimeData.drivingState == DrivingState.DRIVE || (realTimeData.drivingState == DrivingState.CHARGE && emulatorMode))) {
-            // if (!timestampSynchronizer.isSynced()) timestampSynchronizer.sync(System.currentTimeMillis(), carPropertiesData.CurrentSpeed.timestamp)
             val distanceDelta = (carPropertiesData.CurrentSpeed.lastValue as Float).absoluteValue * (carPropertiesData.CurrentSpeed.timeDelta / 1_000_000_000f)
             pointDrivenDistance += distanceDelta
             valueDrivenDistance += distanceDelta
+            pointTimestamp = carPropertiesData.CurrentSpeed.timestamp
             pointTime += carPropertiesData.CurrentSpeed.timeDelta
 
             val speedToOrFromZero = when {
@@ -241,7 +240,7 @@ class DataProcessor {
         }
         // if (timestampSynchronizer.isSynced()){
             //if (timestampSynchronizer.getSystemTimeFromNanosTimestamp(carPropertiesData.CurrentPower.timestamp) < System.currentTimeMillis() - 500) {
-        if (carPropertiesData.CurrentPower.timestamp < System.nanoTime() - 500_000_000) {
+        if (carPropertiesData.CurrentPower.timestamp < System.nanoTime() - 2_000_000_000) {
             InAppLogger.w("[NEO] Dropped power value, timestamp too old. Time delta: ${(System.nanoTime() - carPropertiesData.CurrentPower.timestamp)/1_000_000}")
             return
         }
@@ -452,12 +451,13 @@ class DataProcessor {
     }
 
     /** Update data points when driving */
-    private fun updateDrivingDataPoint(markerType: Int? = null, timestamp: Long? = null): Job {
+    private fun updateDrivingDataPoint(markerType: Int? = null): Job {
         val mUsedEnergy = pointUsedEnergy
         pointUsedEnergy = 0.0
         val mDrivenDistance = pointDrivenDistance
         pointDrivenDistance = 0.0
-
+        val mTimestamp = pointTimestamp
+        pointTimestamp = 0L
         pointTime = 0L
 
         updateTripDataValues(DrivingState.DRIVE) // let's put this outside of the coroutine in the hope of fixing this stupid difference between point and trip values...
@@ -470,13 +470,10 @@ class DataProcessor {
          * loadSessionsToMemory as well!
          */
         return CoroutineScope(Dispatchers.IO).launch { // Run database write in own coroutine to not Block fast Updates
+            if (mTimestamp == 0L) return@launch
 
-            // if (mUsedEnergy.absoluteValue < .1 && mDrivenDistance.absoluteValue > 1) {
-            //     InAppLogger.w("[NEO] Driving point not written, implausible values: ${mDrivenDistance.toFloat()} m, ${mUsedEnergy.toFloat()} Wh")
-            //     return@launch
-            // }
             val drivingPoint = DrivingPoint(
-                driving_point_epoch_time = timestamp?: System.currentTimeMillis(),
+                driving_point_epoch_time = TimestampSynchronizer.getSystemTimeFromNanosTimestamp(mTimestamp),
                 energy_delta = mUsedEnergy.toFloat(),
                 distance_delta = mDrivenDistance.toFloat(),
                 point_marker_type = markerType,
