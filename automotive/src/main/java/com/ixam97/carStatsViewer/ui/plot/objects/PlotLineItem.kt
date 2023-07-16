@@ -3,22 +3,17 @@ package com.ixam97.carStatsViewer.ui.plot.objects
 import com.ixam97.carStatsViewer.ui.plot.enums.PlotDimensionX
 import com.ixam97.carStatsViewer.ui.plot.enums.PlotDimensionY
 import com.ixam97.carStatsViewer.ui.plot.enums.PlotLineMarkerType
-import com.ixam97.carStatsViewer.utils.Exclude
 import kotlin.math.roundToInt
 
 class PlotLineItem (
     var Value: Float,
     val EpochTime: Long,
-    @Exclude
-    val NanoTime: Long?,
-    val Distance: Float,
-    var StateOfCharge: Float,
-    var Altitude: Float?,
     var TimeDelta: Long?,
+    val Distance: Float,
     var DistanceDelta: Float?,
+    var StateOfCharge: Float,
     var StateOfChargeDelta: Float?,
-    var AltitudeDelta: Float?,
-
+    var Altitude: Float?,
     var Marker: PlotLineMarkerType?
 ){
     fun group(index: Int, dimension: PlotDimensionX, dimensionSmoothing: Float?): Any {

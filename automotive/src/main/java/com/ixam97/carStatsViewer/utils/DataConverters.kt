@@ -48,25 +48,15 @@ object DataConverters {
 
         val markerType = PlotLineMarkerType.getType(drivingPoint.point_marker_type)
 
-         return PlotLineItem(
+        return PlotLineItem(
             Value = drivingPoint.energy_delta,
             EpochTime = drivingPoint.driving_point_epoch_time,
-            NanoTime = null,
-            Distance = if (prevPlotLineItem == null) {
-                drivingPoint.distance_delta
-            } else {
-                prevPlotLineItem.Distance + drivingPoint.distance_delta
-            },
-            StateOfCharge = drivingPoint.state_of_charge * 100,
-            Altitude = drivingPoint.alt,
-            TimeDelta = drivingPoint.time_delta ?: if (prevPlotLineItem == null) 0 else {
-                (drivingPoint.driving_point_epoch_time - prevPlotLineItem.EpochTime) * 1_000_000
-            },
+            TimeDelta = drivingPoint.time_delta ?: ((drivingPoint.driving_point_epoch_time - (prevPlotLineItem?.EpochTime ?: drivingPoint.driving_point_epoch_time)) * 1_000_000),
+            Distance = drivingPoint.distance_delta + (prevPlotLineItem?.Distance ?: 0f),
             DistanceDelta = drivingPoint.distance_delta,
-            StateOfChargeDelta = if (prevPlotLineItem == null) 0f else {
-                drivingPoint.state_of_charge*100 - prevPlotLineItem.StateOfCharge
-            },
-            AltitudeDelta = null,
+            StateOfCharge = drivingPoint.state_of_charge * 100,
+            StateOfChargeDelta = (drivingPoint.state_of_charge * 100) - (prevPlotLineItem?.StateOfCharge?: (drivingPoint.state_of_charge * 100)),
+            Altitude = drivingPoint.alt,
             Marker = markerType
         )
     }
@@ -88,18 +78,12 @@ object DataConverters {
         return PlotLineItem(
             Value = -chargingPoint.power / 1_000_000,
             EpochTime = chargingPoint.charging_point_epoch_time,
-            NanoTime = null,
+            TimeDelta = 1,
             Distance = 0f,
-            StateOfCharge = chargingPoint.state_of_charge * 100,
-            Altitude = null,
-            TimeDelta = if (prevPlotLineItem == null) 0 else {
-                (chargingPoint.charging_point_epoch_time - prevPlotLineItem.EpochTime) * 1_000_000
-            },
             DistanceDelta = 0f,
-            StateOfChargeDelta = if (prevPlotLineItem == null) 0f else {
-                chargingPoint.state_of_charge * 100 - prevPlotLineItem.StateOfCharge
-            },
-            AltitudeDelta = null,
+            StateOfCharge = chargingPoint.state_of_charge * 100,
+            StateOfChargeDelta = (chargingPoint.state_of_charge * 100) - (prevPlotLineItem?.StateOfCharge ?: (chargingPoint.state_of_charge * 100)),
+            Altitude = null,
             Marker = markerType
         )
     }
