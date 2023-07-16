@@ -172,13 +172,13 @@ class DataCollector: Service() {
                             startLocationClient(5_000)
                             WatchdogState.ERROR
                         }
-                        watchdogLocation == lastLocation -> {
-                            InAppLogger.w("[Watchdog] Location error: Location unchanged.")
-                            WatchdogState.LIMITED
-                        }
                         lastLocation == null -> {
                             invalidLocationCount++
                             InAppLogger.w("[Watchdog] Location error: Location is null.")
+                            WatchdogState.LIMITED
+                        }
+                        watchdogLocation == lastLocation -> {
+                            InAppLogger.w("[Watchdog] Location error: Location unchanged.")
                             WatchdogState.LIMITED
                         }
                         else -> {
