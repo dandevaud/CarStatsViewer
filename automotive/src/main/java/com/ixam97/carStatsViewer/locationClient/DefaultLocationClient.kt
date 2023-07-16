@@ -46,7 +46,7 @@ class DefaultLocationClient(
                 .setInterval(interval)
                 .setFastestInterval(interval / 2)
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setMaxWaitTime(interval)
+                .setMaxWaitTime(interval * 2)
 
             InAppLogger.d("[LOC] MaxWaitTime: ${request.maxWaitTime}")
 

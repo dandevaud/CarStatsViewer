@@ -150,6 +150,8 @@ class DataCollector: Service() {
         if (CarStatsViewer.appPreferences.autostart)
             CarStatsViewer.setupRestartAlarm(CarStatsViewer.appContext, "termination", 10_000, extendedLogging = true)
 
+        var invalidLocationCount = 0
+
         serviceScope.launch {
             CarStatsViewer.watchdog.watchdogTriggerFlow.collect {
                 InAppLogger.d("[Watchdog] Watchdog triggered")
@@ -159,23 +161,34 @@ class DataCollector: Service() {
 
                 if (CarStatsViewer.appPreferences.useLocation) {
                     locationState = when {
+                        invalidLocationCount > 10 -> {
+                            invalidLocationCount = 0
+                            InAppLogger.w("[Watchdog] Location error: Location client restart.")
+                            startLocationClient(5_000)
+                            WatchdogState.ERROR
+                        }
                         locationClientJob == null -> {
                             InAppLogger.w("[Watchdog] Location error: Location client not running.")
                             startLocationClient(5_000)
                             WatchdogState.ERROR
                         }
                         watchdogLocation == lastLocation -> {
-                            InAppLogger.w("[Watchdog] Location error: Location is null.")
+                            InAppLogger.w("[Watchdog] Location error: Location unchanged.")
                             WatchdogState.LIMITED
                         }
                         lastLocation == null -> {
+                            invalidLocationCount++
                             InAppLogger.w("[Watchdog] Location error: Location is null.")
                             WatchdogState.LIMITED
                         }
-                        else -> WatchdogState.NOMINAL
+                        else -> {
+                            invalidLocationCount = 0
+                            WatchdogState.NOMINAL
+                        }
                     }
                     watchdogLocation = lastLocation
                 } else if (locationClientJob != null) {
+                    invalidLocationCount = 0
                     stopLocationClient()
                 }
 

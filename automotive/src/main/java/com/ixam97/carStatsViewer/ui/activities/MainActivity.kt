@@ -483,10 +483,17 @@ class MainActivity : FragmentActivity() {
             WatchdogState.DISABLED -> main_icon_location_status.visibility = View.GONE
             WatchdogState.NOMINAL -> {
                 main_icon_location_status.setImageDrawable(getDrawable(R.drawable.ic_location_on))
-                main_icon_location_status.visibility = View.GONE
+                main_icon_location_status.setColorFilter(getColor(R.color.connected_blue))
+                main_icon_location_status.visibility = View.VISIBLE
             }
             WatchdogState.ERROR -> {
                 main_icon_location_status.setImageDrawable(getDrawable(R.drawable.ic_location_error))
+                main_icon_location_status.setColorFilter(getColor(R.color.bad_red))
+                main_icon_location_status.visibility = View.VISIBLE
+            }
+            WatchdogState.LIMITED -> {
+                main_icon_location_status.setImageDrawable(getDrawable(R.drawable.ic_location_error))
+                main_icon_location_status.setColorFilter(getColor(R.color.limited_yellow))
                 main_icon_location_status.visibility = View.VISIBLE
             }
         }
