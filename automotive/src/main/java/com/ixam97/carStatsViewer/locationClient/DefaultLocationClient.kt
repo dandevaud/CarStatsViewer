@@ -44,11 +44,7 @@ class DefaultLocationClient(
 
             val request = LocationRequest.create()
                 .setInterval(interval)
-                .setFastestInterval(interval / 2)
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-                .setMaxWaitTime(interval * 2)
-
-            InAppLogger.d("[LOC] MaxWaitTime: ${request.maxWaitTime}")
 
             if (locationNotAvailable) {
                 throw LocationClient.LocationException("GPS is not enabled!")
