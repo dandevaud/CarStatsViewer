@@ -434,9 +434,9 @@ class DataProcessor {
         endEpoch: Long? = null
     ): DeltaData {
         val drivingPointList = CarStatsViewer.tripDataSource.getDrivingPointsBetween(
-            startEpoch ?: Long.MIN_VALUE,
+            startEpoch ?: System.currentTimeMillis(),
             endEpoch ?: Long.MAX_VALUE
-        );
+        )
 
         return when {
             drivingPointList.isEmpty() -> DeltaData(refEpoch = startEpoch)
