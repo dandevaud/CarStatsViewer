@@ -16,7 +16,12 @@ import java.lang.Exception
 import java.security.Security
 import java.util.*
 
-class MailSender(private val user: String, private val password: String, private val server: String) : Authenticator() {
+class MailSender(
+    private val user: String,
+    private val password: String,
+    private val server: String,
+    private val port: String
+) : Authenticator() {
     private val session: Session
     private val _multipart: Multipart = MimeMultipart()
 
@@ -25,11 +30,15 @@ class MailSender(private val user: String, private val password: String, private
         props.setProperty("mail.transport.protocol", "smtp")
         props.setProperty("mail.host", server)
         props["mail.smtp.auth"] = "true"
-        props["mail.smtp.port"] = "465"
+        props["mail.smtp.port"] = port
         props["mail.smtp.starttls.enable"] = "true"
-        props["mail.smtp.socketFactory.port"] = "465"
-        props["mail.smtp.socketFactory.class"] = "javax.net.ssl.SSLSocketFactory"
-        props["mail.smtp.socketFactory.fallback"] = "false"
+
+        if (port != "587") {
+            props["mail.smtp.socketFactory.port"] = port
+            props["mail.smtp.socketFactory.class"] = "javax.net.ssl.SSLSocketFactory"
+            props["mail.smtp.socketFactory.fallback"] = "false"
+        }
+
         props.setProperty("mail.smtp.quitwait", "false")
         session = Session.getDefaultInstance(props, this)
     }

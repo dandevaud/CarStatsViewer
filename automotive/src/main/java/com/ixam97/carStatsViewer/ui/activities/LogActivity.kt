@@ -101,14 +101,21 @@ class LogActivity : FragmentActivity() {
                     try {
                         val sender = if (appPreferences.smtpAddress != "" && appPreferences.smtpPassword != "" && appPreferences.smtpServer != "") {
                             senderMail = appPreferences.smtpAddress
-                            MailSender(appPreferences.smtpAddress, appPreferences.smtpPassword, appPreferences.smtpServer)
+                            MailSender(
+                                appPreferences.smtpAddress,
+                                appPreferences.smtpPassword,
+                                appPreferences.smtpServer,
+                                appPreferences.smtpPort
+                            )
                         } else {
                             if (resources.getIdentifier("logmail_email_address", "string", applicationContext.packageName) != 0) {
                                 senderMail = getString(resources.getIdentifier("logmail_email_address", "string", applicationContext.packageName))
                                 MailSender(
                                     senderMail,
                                     getString(resources.getIdentifier("logmail_password", "string", applicationContext.packageName)),
-                                    getString(resources.getIdentifier("logmail_server", "string", applicationContext.packageName)))
+                                    getString(resources.getIdentifier("logmail_server", "string", applicationContext.packageName)),
+                                    getString(resources.getIdentifier("logmail_port", "string", applicationContext.packageName))
+                                )
                             } else {
                                 runOnUiThread {
                                     Toast.makeText(this@LogActivity, "No SMTP login", Toast.LENGTH_LONG).show()

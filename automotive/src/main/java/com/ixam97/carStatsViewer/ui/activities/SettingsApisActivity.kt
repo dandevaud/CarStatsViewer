@@ -64,6 +64,8 @@ class SettingsApisActivity: FragmentActivity() {
             smtp_dialog_password.setText(appPreferences.smtpPassword)
             val smtp_dialog_server = layout.findViewById<EditText>(R.id.smtp_dialog_server)
             smtp_dialog_server.setText(appPreferences.smtpServer)
+            val smtp_dialog_port = layout.findViewById<EditText>(R.id.smtp_dialog_port)
+            smtp_dialog_server.setText(appPreferences.smtpPort)
 
             setView(layout)
 
@@ -71,6 +73,7 @@ class SettingsApisActivity: FragmentActivity() {
                 appPreferences.smtpAddress = smtp_dialog_address.text.toString()
                 appPreferences.smtpPassword = smtp_dialog_password.text.toString()
                 appPreferences.smtpServer = smtp_dialog_server.text.toString()
+                appPreferences.smtpPort = smtp_dialog_port.text.toString()
             }
             setTitle(getString(R.string.settings_apis_smtp))
             setMessage(getString(R.string.smtp_description))
