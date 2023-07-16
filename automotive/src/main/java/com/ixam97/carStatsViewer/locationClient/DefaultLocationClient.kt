@@ -55,8 +55,8 @@ class DefaultLocationClient(
             }
 
             val locationCallback = object: LocationCallback() {
-                override fun onLocationResult(locationResult: LocationResult?) {
-                    locationResult ?: return
+                override fun onLocationResult(locationResult: LocationResult) {
+                    InAppLogger.v("[LOC] LocationCallback ${locationResult.locations?.size ?: 0} locations")
                     locationResult.locations.lastOrNull()?.let { location ->
                         if (CarStatsViewer.appPreferences.useLocation) {
                             if (location.altitude > 0 || location.altitude < 0 || emulatorMode) {
