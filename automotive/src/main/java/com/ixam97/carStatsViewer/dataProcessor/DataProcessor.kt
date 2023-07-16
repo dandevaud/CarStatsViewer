@@ -250,6 +250,7 @@ class DataProcessor {
             val energyDelta = emulatorPowerSign * (carPropertiesData.CurrentPower.lastValue as Float) / 1_000f * (carPropertiesData.CurrentPower.timeDelta / 3.6E12)
             pointUsedEnergy += energyDelta
             valueUsedEnergy += energyDelta
+            pointTimestamp = carPropertiesData.CurrentSpeed.timestamp
 
             // if (realTimeData.drivingState == DrivingState.CHARGE) {
             //     if (pointUsedEnergy.absoluteValue > Defines.PLOT_ENERGY_INTERVAL)
@@ -458,6 +459,7 @@ class DataProcessor {
         pointDrivenDistance = 0.0
         val mTimestamp = pointTimestamp
         pointTimestamp = 0L
+        val mTime = pointTime
         pointTime = 0L
 
         updateTripDataValues(DrivingState.DRIVE) // let's put this outside of the coroutine in the hope of fixing this stupid difference between point and trip values...
@@ -476,6 +478,7 @@ class DataProcessor {
                 driving_point_epoch_time = TimestampSynchronizer.getSystemTimeFromNanosTimestamp(mTimestamp),
                 energy_delta = mUsedEnergy.toFloat(),
                 distance_delta = mDrivenDistance.toFloat(),
+                time_delta = mTime,
                 point_marker_type = markerType,
                 state_of_charge = realTimeData.stateOfCharge?:0f,
                 lat = realTimeData.lat,
@@ -488,6 +491,7 @@ class DataProcessor {
             while (!localSessionsAccess) {
                 InAppLogger.w("WAITING for local session access")
             }
+
             localSessions.forEachIndexed { index, session ->
                 val drivingPoints = session.drivingPoints?.toMutableList()
                 drivingPoints?.add(drivingPoint)
@@ -540,7 +544,7 @@ class DataProcessor {
             localSessions[index].drivingPoints = drivingPoints
         }
 
-        _selectedSessionDataFlow.value = localSessions.last { it.session_type == CarStatsViewer.appPreferences.mainViewTrip + 1 }
+        _selectedSessionDataFlow.value = localSessions.lastOrNull { it.session_type == CarStatsViewer.appPreferences.mainViewTrip + 1 } ?: localSessions.first()
     }
 
     private suspend fun writeTripsToDatabase() {

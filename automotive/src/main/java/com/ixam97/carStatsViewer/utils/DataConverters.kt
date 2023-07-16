@@ -59,7 +59,7 @@ object DataConverters {
             },
             StateOfCharge = drivingPoint.state_of_charge * 100,
             Altitude = drivingPoint.alt,
-            TimeDelta = if (prevPlotLineItem == null) 0 else {
+            TimeDelta = drivingPoint.time_delta ?: if (prevPlotLineItem == null) 0 else {
                 (drivingPoint.driving_point_epoch_time - prevPlotLineItem.EpochTime) * 1_000_000
             },
             DistanceDelta = drivingPoint.distance_delta,

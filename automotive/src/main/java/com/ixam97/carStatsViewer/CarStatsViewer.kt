@@ -128,6 +128,12 @@ class CarStatsViewer : Application() {
             }
         }
 
+        val MIGRATION_6_7 = object: Migration(6, 7) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE DrivingPoint ADD COLUMN time_delta INTEGER NULL")
+            }
+        }
+
         tripDatabase = Room.databaseBuilder(
             applicationContext,
             TripDataDatabase::class.java,
@@ -135,6 +141,7 @@ class CarStatsViewer : Application() {
         )
             //.fallbackToDestructiveMigration()
             .addMigrations(MIGRATION_5_6)
+            .addMigrations(MIGRATION_6_7)
             .build()
 
         tripDataSource = LocalTripDataSource(tripDatabase.tripDao())
