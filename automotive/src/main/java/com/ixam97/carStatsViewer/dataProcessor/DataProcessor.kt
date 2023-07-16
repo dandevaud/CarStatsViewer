@@ -409,7 +409,7 @@ class DataProcessor {
         if (drivingState == DrivingState.DRIVE && oldDrivingState != DrivingState.DRIVE) {
             val lastDriveTime = CarStatsViewer.tripDataSource.getLatestDrivingPoint()?.driving_point_epoch_time
             if (lastDriveTime != null) {
-                if (Date(). month != Date(lastDriveTime).month)
+                if (Date().month != Date(lastDriveTime).month)
                     resetTrip(TripType.MONTH, oldDrivingState)
                 if (lastDriveTime < (System.currentTimeMillis() - Defines.AUTO_RESET_TIME))
                     resetTrip(TripType.AUTO, oldDrivingState)
