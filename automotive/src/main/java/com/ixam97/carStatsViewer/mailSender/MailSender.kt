@@ -1,5 +1,7 @@
 package com.ixam97.carStatsViewer.mailSender
 
+import android.graphics.Bitmap
+import com.ixam97.carStatsViewer.CarStatsViewer
 import kotlin.jvm.Synchronized
 import kotlin.Throws
 import com.ixam97.carStatsViewer.mailSender.JSSEProvider
@@ -12,7 +14,6 @@ import jakarta.mail.internet.MimeBodyPart
 import jakarta.mail.internet.MimeMessage
 import jakarta.mail.internet.MimeMultipart
 import java.io.*
-import java.lang.Exception
 import java.security.Security
 import java.util.*
 
@@ -79,6 +80,19 @@ class MailSender(
         val messageBodyPart: BodyPart = MimeBodyPart()
         messageBodyPart.dataHandler = DataHandler(content, "text/plain")
         messageBodyPart.fileName = fileName
+        _multipart.addBodyPart(messageBodyPart)
+    }
+
+    fun addAttachment(content: Bitmap, fileName: String) {
+        val messageBodyPart = MimeBodyPart()
+
+        val dir = CarStatsViewer.appContext.cacheDir.toString()
+        val file = File(dir, "$fileName.jpeg")
+        val outputStream = BufferedOutputStream(FileOutputStream(file))
+
+        content.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
+
+        messageBodyPart.attachFile(file)
         _multipart.addBodyPart(messageBodyPart)
     }
 
