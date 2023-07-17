@@ -63,6 +63,7 @@ class LocalTripDataSource(
             used_energy = 0.0,
             driven_distance = 0.0,
             drive_time = 0,
+            trip_time = 0,
             note = "",
             used_soc = 0.0,
             used_soc_energy = 0.0,

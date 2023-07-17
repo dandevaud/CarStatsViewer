@@ -24,6 +24,7 @@ data class HttpDataSet(
     val end_epoch_time: Long?,
     val session_type: Int?,
     val drive_time: Long?,
+    val trip_time: Long?,
     val used_energy: Double?,
     val used_soc: Double?,
     val used_soc_energy: Double?,

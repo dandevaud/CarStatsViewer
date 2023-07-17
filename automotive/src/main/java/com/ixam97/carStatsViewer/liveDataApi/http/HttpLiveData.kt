@@ -161,6 +161,7 @@ class HttpLiveData (
                     drivingSession?.end_epoch_time,
                     drivingSession?.session_type,
                     drivingSession?.drive_time,
+                    drivingSession?.trip_time,
                     drivingSession?.used_energy,
                     drivingSession?.used_soc,
                     drivingSession?.used_soc_energy,

@@ -14,7 +14,7 @@ import androidx.room.migration.AutoMigrationSpec
         DrivingChargingCrossRef::class,
         SessionMarker::class
     ],
-    version = 7
+    version = 8
 )
 abstract class TripDataDatabase: RoomDatabase() {
 
