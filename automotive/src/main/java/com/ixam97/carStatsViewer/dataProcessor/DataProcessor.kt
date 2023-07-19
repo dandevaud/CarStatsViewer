@@ -121,9 +121,7 @@ class DataProcessor {
             CarStatsViewer.tripDataSource.getActiveDrivingSessionsIds().forEach { sessionId ->
                 CarStatsViewer.tripDataSource.getFullDrivingSession(sessionId).let { session ->
                     localSessions.add(session)
-                    if (session.session_type == CarStatsViewer.appPreferences.mainViewTrip + 1) {
-                        _selectedSessionDataFlow.value = session
-                    }
+                     changeSelectedTrip()
                 }
             }
         }
@@ -368,7 +366,7 @@ class DataProcessor {
 
         loadSessionsToMemory().join()
 
-        changeSelectedTrip(CarStatsViewer.appPreferences.mainViewTrip + 1)
+        changeSelectedTrip()
     }
 
     fun checkChargingSessions(): Job {
@@ -483,10 +481,9 @@ class DataProcessor {
                 drivingPoints?.add(drivingPoint)
                 localSessions[index] = session.copy(last_edited_epoch_time = System.currentTimeMillis())
                 localSessions[index].drivingPoints = drivingPoints
-                if (session.session_type == CarStatsViewer.appPreferences.mainViewTrip + 1) {
-                    _selectedSessionDataFlow.value = localSessions[index]
-                }
             }
+
+            changeSelectedTrip()
 
             writeTripsToDatabase()
             InAppLogger.d("[NEO] Driving point written: ${mDrivenDistance.toFloat()} m, ${mUsedEnergy.toFloat()} Wh")
@@ -539,7 +536,7 @@ class DataProcessor {
             localSessions[index].drivingPoints = drivingPoints
         }
 
-        _selectedSessionDataFlow.value = localSessions.lastOrNull { it.session_type == CarStatsViewer.appPreferences.mainViewTrip + 1 } ?: localSessions.first()
+        changeSelectedTrip()
     }
 
     private suspend fun writeTripsToDatabase() {
@@ -651,10 +648,11 @@ class DataProcessor {
     }
 
     /** Change the selected trip type to update the trip data flow with */
-    fun changeSelectedTrip(tripType: Int) {
-        if (localSessions.isNotEmpty())
-            _selectedSessionDataFlow.value = localSessions.first{it.session_type == tripType}
-    }
+    fun changeSelectedTrip(tripType: Int? = null) {
+        (localSessions.lastOrNull { it.session_type == (tripType ?: (CarStatsViewer.appPreferences.mainViewTrip + 1)) } ?: localSessions.firstOrNull())?.let {
+            _selectedSessionDataFlow.value = it
+        }
+     }
 
     suspend fun resetTrip(tripType: Int, drivingState: Int) {
         /** Create data point right before reset, but only while driving */
@@ -677,6 +675,7 @@ class DataProcessor {
             InAppLogger.w("[NEO] No trip of type ${TripType.tripTypesNameMap[tripType]} existing, starting new trip")
         }
 
+        changeSelectedTrip()
         loadSessionsToMemory().join()
     }
 

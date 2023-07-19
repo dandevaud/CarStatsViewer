@@ -189,9 +189,6 @@ class PlotView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
         labelPaint = Paint(borderLinePaint)
         labelPaint.style = Paint.Style.FILL
-        CarStatsViewer.typefaceRegular?.let {
-            labelPaint.typeface = it
-        }
 
         baseLinePaint = Paint(borderLinePaint)
         baseLinePaint.color = Color.LTGRAY

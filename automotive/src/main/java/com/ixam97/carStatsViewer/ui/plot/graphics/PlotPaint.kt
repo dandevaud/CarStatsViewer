@@ -3,6 +3,7 @@ package com.ixam97.carStatsViewer.ui.plot.graphics
 import android.graphics.Color
 import android.graphics.DashPathEffect
 import android.graphics.Paint
+import com.ixam97.carStatsViewer.CarStatsViewer
 
 class PlotPaint(
     val Plot: Paint,
@@ -86,6 +87,10 @@ class PlotPaint(
             basePaint.strokeJoin = Paint.Join.ROUND
             basePaint.strokeCap = Paint.Cap.ROUND
             basePaint.textSize = textSize
+
+            CarStatsViewer.typefaceRegular?.let {
+                basePaint.typeface = it
+            }
 
             return basePaint
         }
