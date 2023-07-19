@@ -323,6 +323,10 @@ class MainActivity : FragmentActivity() {
 
         setContentView(R.layout.activity_main)
 
+        CarStatsViewer.typefaceMedium?.let {
+            applyTypeface(main_activity)
+        }
+
         setupDefaultUi()
         setUiEventListeners()
 
@@ -428,7 +432,7 @@ class MainActivity : FragmentActivity() {
         main_gage_avg_consumption_text_view.text = StringFormatters.getAvgConsumptionString(neoEnergy.toFloat(), neoDistance.toFloat())
         main_gage_distance_text_view.text = StringFormatters.getTraveledDistanceString(neoDistance.toFloat())
         main_gage_used_power_text_view.text = StringFormatters.getEnergyString(neoEnergy.toFloat())
-        main_gage_remaining_range_text_view.text = StringFormatters.getAvgSpeedString(neoDistance.toFloat(), neoTime)
+        main_gage_avg_speed_text_view.text = StringFormatters.getAvgSpeedString(neoDistance.toFloat(), neoTime)
         main_gage_time_text_view.text = StringFormatters.getElapsedTimeString(neoTime)
         main_gage_charged_energy_text_view.text = StringFormatters.getEnergyString(neoChargedEnergy.toFloat())
         main_gage_charge_time_text_view.text = StringFormatters.getElapsedTimeString(neoChargeTime)

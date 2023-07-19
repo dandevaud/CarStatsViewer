@@ -29,6 +29,7 @@ import com.ixam97.carStatsViewer.ui.plot.enums.*
 import com.ixam97.carStatsViewer.utils.DataConverters
 import com.ixam97.carStatsViewer.utils.StringFormatters
 import com.ixam97.carStatsViewer.ui.views.PlotView
+import com.ixam97.carStatsViewer.utils.applyTypeface
 import kotlinx.android.synthetic.main.fragment_summary.*
 import kotlinx.coroutines.*
 import java.util.*
@@ -88,6 +89,10 @@ class SummaryFragment() : Fragment(R.layout.fragment_summary) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        CarStatsViewer.typefaceRegular?.let {
+            applyTypeface(view)
+        }
 
         setupPlots()
         setSecondaryConsumptionPlotDimension(appPreferences.secondaryConsumptionDimension)
