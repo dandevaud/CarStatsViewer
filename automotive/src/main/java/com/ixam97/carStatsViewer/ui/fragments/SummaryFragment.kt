@@ -204,9 +204,7 @@ class SummaryFragment() : Fragment(R.layout.fragment_summary) {
         summary_consumption_plot.sessionGapRendering = PlotSessionGapRendering.JOIN
 
         summary_charge_plot_view.dimension = PlotDimensionX.TIME
-        summary_charge_plot_view.dimensionRestrictionMin = TimeUnit.MINUTES.toMillis(5)
-        // summary_charge_plot_view.dimensionSmoothing = 0.01f
-        // summary_charge_plot_view.dimensionSmoothingType = PlotDimensionSmoothingType.PERCENTAGE
+        summary_charge_plot_view.dimensionRestrictionMin = TimeUnit.MINUTES.toMillis(1)
         summary_charge_plot_view.dimensionYSecondary = PlotDimensionY.STATE_OF_CHARGE
 
         summary_charge_plot_view.addPlotLine(chargePlotLine, chargePlotLinePaint)
@@ -421,10 +419,7 @@ class SummaryFragment() : Fragment(R.layout.fragment_summary) {
         chargePlotLine.addDataPoints(DataConverters.chargePlotLineFromChargingPoints(completedChargingSessions[progress].chargingPoints!!))
 
         summary_charge_plot_view.dimensionRestriction = TimeUnit.MINUTES.toMillis((TimeUnit.MILLISECONDS.toMinutes((completedChargingSessions[progress].end_epoch_time?:0) - completedChargingSessions[progress].start_epoch_time) / 5) + 1) * 5 + 1
-        summary_charge_plot_view.dimensionRestrictionMin = TimeUnit.MINUTES.toMillis(1)
         summary_charge_plot_view.invalidate()
-
-
     }
 
     private fun switchToConsumptionLayout() {
