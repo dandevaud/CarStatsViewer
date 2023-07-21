@@ -14,6 +14,7 @@ import com.ixam97.carStatsViewer.appPreferences.AppPreferences
 import com.ixam97.carStatsViewer.dataProcessor.IgnitionState
 import com.ixam97.carStatsViewer.dataProcessor.DeltaData
 import com.ixam97.carStatsViewer.dataProcessor.RealTimeData
+import com.ixam97.carStatsViewer.dataProcessor.StaticVehicleData
 import com.ixam97.carStatsViewer.database.tripData.DrivingSession
 import com.ixam97.carStatsViewer.liveDataApi.LiveDataApi
 import com.ixam97.carStatsViewer.utils.InAppLogger
@@ -137,6 +138,11 @@ class HttpLiveData (
                     appVersion = BuildConfig.VERSION_NAME,
 
                     timestamp = System.currentTimeMillis(),
+
+                    CarStatsViewer.dataProcessor.staticVehicleData.batteryCapacity,
+                    CarStatsViewer.dataProcessor.staticVehicleData.vehicleMake,
+                    CarStatsViewer.dataProcessor.staticVehicleData.modelName,
+
                     realTimeSpeed = realTimeData.speed!!,
                     realTimePower = realTimeData.power!!,
                     realTimeGear = StringFormatters.getGearString(realTimeData.selectedGear!!),
