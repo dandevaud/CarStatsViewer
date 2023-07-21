@@ -45,7 +45,6 @@ object DataConverters {
     }
 
     fun consumptionPlotLineItemFromDrivingPoint(drivingPoint: DrivingPoint, prevPlotLineItem: PlotLineItem? = null): PlotLineItem {
-
         val markerType = PlotLineMarkerType.getType(drivingPoint.point_marker_type)
 
         return PlotLineItem(
@@ -56,7 +55,12 @@ object DataConverters {
             DistanceDelta = drivingPoint.distance_delta,
             StateOfCharge = drivingPoint.state_of_charge * 100,
             StateOfChargeDelta = (drivingPoint.state_of_charge * 100) - (prevPlotLineItem?.StateOfCharge?: (drivingPoint.state_of_charge * 100)),
-            Altitude = drivingPoint.alt,
+            Altitude = drivingPoint.alt?.let {
+                when (it) {
+                    0f -> null
+                    else -> it
+                }
+            },
             Marker = markerType
         )
     }

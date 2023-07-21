@@ -127,7 +127,12 @@ class DataProcessor {
         realTimeData = realTimeData.copy(
             lat = lat?.toFloat(),
             lon = lon?.toFloat(),
-            alt = alt?.toFloat()
+            alt = alt?.let {
+                when (it) {
+                    0.0 -> null
+                    else -> it.toFloat()
+                }
+            }
         )
     }
 
