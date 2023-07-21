@@ -117,9 +117,9 @@ class DataProcessor {
             CarStatsViewer.tripDataSource.getActiveDrivingSessionsIds().forEach { sessionId ->
                 CarStatsViewer.tripDataSource.getFullDrivingSession(sessionId).let { session ->
                     localSessions.add(session)
-                     changeSelectedTrip()
                 }
             }
+            changeSelectedTrip()
         }
     }
 
@@ -650,8 +650,10 @@ class DataProcessor {
 
     /** Change the selected trip type to update the trip data flow with */
     fun changeSelectedTrip(tripType: Int? = null) {
-        (localSessions.lastOrNull { it.session_type == (tripType ?: (CarStatsViewer.appPreferences.mainViewTrip + 1)) } ?: localSessions.firstOrNull())?.let {
-            _selectedSessionDataFlow.value = it
+        if (localSessions.isNotEmpty()) {
+            (localSessions.lastOrNull { it.session_type == (tripType ?: (CarStatsViewer.appPreferences.mainViewTrip + 1)) } ?: localSessions.firstOrNull())?.let {
+                _selectedSessionDataFlow.value = it
+            }
         }
      }
 
