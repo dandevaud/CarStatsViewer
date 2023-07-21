@@ -204,7 +204,10 @@ class HistoryActivity  : FragmentActivity() {
         builder.setTitle(getString(R.string.history_dialog_delete_title))
             .setCancelable(true)
             .setPositiveButton(getString(R.string.history_dialog_delete_confirm)) {_,_->
-                tripsAdapter.deleteTrip(session, position)
+                lifecycleScope.launch { withContext(Dispatchers.IO) {
+                    CarStatsViewer.tripDataSource.deleteDrivingSessionById(session.driving_session_id)
+                    tripsAdapter.reloadDataBase()
+                }}
             }
             .setNegativeButton(getString(R.string.dialog_reset_cancel)) { dialog, _ ->
                 dialog.cancel()

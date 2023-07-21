@@ -86,33 +86,6 @@ class TripHistoryAdapter(
         differ.currentList[position].deleteMarker = isSelected
     }
 
-    fun deleteTrip(session: DrivingSession, position: Int) {
-        CoroutineScope(Dispatchers.IO).launch {
-            CarStatsViewer.tripDataSource.deleteDrivingSessionById(session.driving_session_id)
-            CarStatsViewer.dataProcessor.checkTrips()
-
-            if ((session.end_epoch_time?:0) > 0) {
-                val newSessions = sessions.toMutableList()
-                newSessions.removeAt(position)
-                if (newSessions.size <= 6) newSessions.removeAt(5)
-                sessions = newSessions
-                activity.runOnUiThread { differ.submitList(newSessions); InAppLogger.d("Submitting to differ") }
-            } else {
-                // val newSession = CarStatsViewer.tripDataSource.getActiveDrivingSessions().find { it.session_type == session.session_type }
-                reloadDataBase()
-
-                // if (newSession != null) {
-                //     val newSessions = sessions.toMutableList()
-                //     newSessions[position] = newSession
-                //     sessions = newSessions
-                //     activity.runOnUiThread { differ.submitList(sessions) }
-                // } else {
-                //     reloadDataBase()
-                // }
-            }
-        }
-    }
-
     fun resetTrip(tripType: Int): Job {
         return CoroutineScope(Dispatchers.Default).launch {
             CarStatsViewer.dataProcessor.resetTrip(tripType, CarStatsViewer.dataProcessor.realTimeData.drivingState)

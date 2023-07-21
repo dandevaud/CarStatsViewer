@@ -348,6 +348,12 @@ class DataProcessor {
     /** Make sure every type of trip has an active trip */
     suspend fun checkTrips() {
         val drivingSessionsIdsMap = CarStatsViewer.tripDataSource.getActiveDrivingSessionsIdsMap()
+
+        CarStatsViewer.tripDataSource.getActiveDrivingSessions().filter { !drivingSessionsIdsMap.containsValue(it.driving_session_id) }.forEach {
+            CarStatsViewer.tripDataSource.endDrivingSession(System.currentTimeMillis(), it.driving_session_id)
+            InAppLogger.i("[NEO] End driving session")
+        }
+
         if (!drivingSessionsIdsMap.contains(TripType.MANUAL)) {
             CarStatsViewer.tripDataSource.startDrivingSession(System.currentTimeMillis(), TripType.MANUAL)
             InAppLogger.i("[NEO] Created manual trip")
