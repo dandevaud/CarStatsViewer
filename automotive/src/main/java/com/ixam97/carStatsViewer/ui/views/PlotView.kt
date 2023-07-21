@@ -612,7 +612,7 @@ class PlotView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
     private fun toPlotPointCollection(configuration: PlotLineConfiguration, line: PlotLine, dimensionY: PlotDimensionY?, minValue: Float, maxValue: Float, minDimension: Any, maxDimension: Any, maxX: Float, maxY: Float, smoothing: Float?, smoothingPercentage: Float?): ArrayList<ArrayList<PlotPointMinAvgMax>> {
         val dataPoints = line.getDataPoints(dimension, dimensionRestriction, dimensionShift, true)
-        val plotLineItemPointCollection = line.toPlotLineItemPointCollection(dataPoints, dimension, smoothing, minDimension, maxDimension)
+        val plotLineItemPointCollection = line.toPlotLineItemPointCollection(dataPoints, dimension, dimensionY, smoothing, minDimension, maxDimension)
 
         val plotPointCollection = ArrayList<ArrayList<PlotPointMinAvgMax>>()
         for (collection in plotLineItemPointCollection) {

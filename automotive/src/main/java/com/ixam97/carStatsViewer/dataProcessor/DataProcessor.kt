@@ -372,8 +372,6 @@ class DataProcessor {
         }
 
         loadSessionsToMemory().join()
-
-        changeSelectedTrip()
     }
 
     fun checkChargingSessions(): Job {
@@ -684,7 +682,6 @@ class DataProcessor {
             InAppLogger.w("[NEO] No trip of type ${TripType.tripTypesNameMap[tripType]} existing, starting new trip")
         }
 
-        changeSelectedTrip()
         loadSessionsToMemory().join()
     }
 
