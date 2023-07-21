@@ -13,11 +13,9 @@ import com.ixam97.carStatsViewer.R
 import com.ixam97.carStatsViewer.appPreferences.AppPreferences
 import com.ixam97.carStatsViewer.dataProcessor.IgnitionState
 import com.ixam97.carStatsViewer.dataProcessor.DeltaData
-import com.ixam97.carStatsViewer.dataProcessor.DrivingState
 import com.ixam97.carStatsViewer.dataProcessor.RealTimeData
 import com.ixam97.carStatsViewer.database.tripData.DrivingSession
 import com.ixam97.carStatsViewer.liveDataApi.LiveDataApi
-import com.ixam97.carStatsViewer.liveDataApi.abrpLiveData.AbrpLiveData
 import com.ixam97.carStatsViewer.utils.InAppLogger
 import com.ixam97.carStatsViewer.utils.StringFormatters
 import java.io.DataOutputStream
@@ -25,7 +23,6 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.nio.charset.StandardCharsets
 import java.util.*
-import kotlin.math.roundToInt
 
 
 class HttpLiveData (
@@ -140,37 +137,31 @@ class HttpLiveData (
                     appVersion = BuildConfig.VERSION_NAME,
 
                     timestamp = System.currentTimeMillis(),
-                    speed = realTimeData.speed!!,
-                    power = realTimeData.power!!,
-                    selectedGear = StringFormatters.getGearString(realTimeData.selectedGear!!),
-                    ignitionState = IgnitionState.nameMap[realTimeData.ignitionState!!]?:"UNKNOWN",
-                    chargePortConnected = realTimeData.chargePortConnected!!,
-                    batteryLevel = realTimeData.batteryLevel!!,
-                    stateOfCharge = realTimeData.stateOfCharge!!,
-                    ambientTemperature = realTimeData.ambientTemperature!!,
-                    lat = realTimeData.lat,
-                    lon = realTimeData.lon,
-                    alt = realTimeData.alt,
-
-                    // ABRP debug
-                    abrpPackage = if (CarStatsViewer.appPreferences.httpLiveDataSendABRPDataset) (CarStatsViewer.liveDataApis[0] as AbrpLiveData).lastPackage else null,
+                    realTimeSpeed = realTimeData.speed!!,
+                    realTimePower = realTimeData.power!!,
+                    realTimeGear = StringFormatters.getGearString(realTimeData.selectedGear!!),
+                    realTimeIgnitionState = IgnitionState.nameMap[realTimeData.ignitionState!!]?:"UNKNOWN",
+                    realTimeChargePortConnected = realTimeData.chargePortConnected!!,
+                    realTimeBatteryLevel = realTimeData.batteryLevel!!,
+                    realTimeStateOfCharge = realTimeData.stateOfCharge!!,
+                    realTimeAmbientTemperature = realTimeData.ambientTemperature!!,
+                    realTimeLat = realTimeData.lat,
+                    realTimeLon = realTimeData.lon,
+                    realTimeAlt = realTimeData.alt,
 
                     // Session Data
                     drivingSession?.driving_session_id,
+                    drivingSession?.session_type,
                     drivingSession?.start_epoch_time,
                     drivingSession?.end_epoch_time,
-                    drivingSession?.session_type,
                     drivingSession?.drive_time,
                     drivingSession?.trip_time,
                     drivingSession?.used_energy,
                     drivingSession?.used_soc,
-                    drivingSession?.used_soc_energy,
                     drivingSession?.driven_distance,
-                    drivingSession?.note,
-                    drivingSession?.last_edited_epoch_time,
 
                     // DeltaValues
-                    deltaData?.powerUsed,
+                    deltaData?.usedEnergy,
                     deltaData?.traveledDistance,
                     deltaData?.timeSpan
                 )
@@ -208,7 +199,7 @@ class HttpLiveData (
                 } catch (e: java.lang.Exception) {
                     "No response content"
                 }
-                if (dataSet.lat == null) logString += ". No valid location!"
+                if (dataSet.realTimeLat == null) logString += ". No valid location!"
                 InAppLogger.d(logString)
             }
 
