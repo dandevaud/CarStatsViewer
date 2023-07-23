@@ -29,11 +29,14 @@ import com.ixam97.carStatsViewer.ui.plot.enums.*
 import com.ixam97.carStatsViewer.utils.DataConverters
 import com.ixam97.carStatsViewer.utils.StringFormatters
 import com.ixam97.carStatsViewer.ui.views.PlotView
+import com.ixam97.carStatsViewer.utils.InAppLogger
 import com.ixam97.carStatsViewer.utils.applyTypeface
 import kotlinx.android.synthetic.main.fragment_summary.*
 import kotlinx.coroutines.*
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.math.absoluteValue
+import kotlin.math.roundToInt
 
 class SummaryFragment() : Fragment(R.layout.fragment_summary) {
 
@@ -238,11 +241,30 @@ class SummaryFragment() : Fragment(R.layout.fragment_summary) {
 
                     if (emulatorMode) delay(1_000)
                 }
-                session.drivingPoints?.let {
-                    val plotPoints = DataConverters.consumptionPlotLineFromDrivingPoints(it)
+
+                var altUp = 0f
+                var altDown = 0f
+
+                session.drivingPoints?.let { drivingPoints ->
+                    val plotPoints = DataConverters.consumptionPlotLineFromDrivingPoints(drivingPoints)
                     val plotMarkers = DataConverters.plotMarkersFromSession(session)
+
+                    var prevAlt = 0f
+                    val altList = drivingPoints.mapNotNull { it.alt }
+                    altList.forEachIndexed { index, alt ->
+                        if (index == 0) prevAlt = alt
+                        else {
+                            when {
+                                alt > prevAlt -> altUp += alt - prevAlt
+                                alt < prevAlt -> altDown += prevAlt - alt
+                            }
+                        }
+                        prevAlt = alt
+                    }
+
                     delay(500)
                     requireActivity().runOnUiThread {
+                        summary_altitude_value_text.text = StringFormatters.getAltitudeString(altUp, altDown)
                         consumptionPlotLine.reset()
                         consumptionPlotLine.addDataPoints(plotPoints)
                         summary_consumption_plot.setPlotMarkers(plotMarkers)
@@ -252,6 +274,7 @@ class SummaryFragment() : Fragment(R.layout.fragment_summary) {
                         summary_progress_bar.visibility = View.GONE
                     }
                 }
+
                 session.chargingSessions?.let {  chargingSessions ->
                     if (chargingSessions.isNotEmpty()) {
                         completedChargingSessions = chargingSessions.filter { it.end_epoch_time != null }
@@ -308,26 +331,9 @@ class SummaryFragment() : Fragment(R.layout.fragment_summary) {
             summary_selected_trip_bar[appPreferences.mainViewTrip].background = primaryColor.toColor().toDrawable()
         }
 
-        var altUp = 0f
-        var altDown = 0f
-
-        session.drivingPoints?.let { drivingPoint ->
-            val altList = drivingPoint.map { it.alt }
-
-            altList.forEachIndexed { index, alt ->
-                if (index > 0) {
-                    val prevAlt = altList[index - 1]
-                    if (alt != null && prevAlt != null) {
-                        if (alt > prevAlt) altUp += alt - prevAlt
-                        if (alt < prevAlt) altDown += prevAlt - alt
-                    }
-                }
-            }
-        }
-
         summary_trip_date_text.text = getString(R.string.summary_trip_start_date).format(StringFormatters.getDateString(Date(session.start_epoch_time)))
         summary_distance_value_text.text = StringFormatters.getTraveledDistanceString(session.driven_distance.toFloat())
-        summary_altitude_value_text.text = StringFormatters.getAltitudeString(altUp, altDown)
+        summary_altitude_value_text.text = StringFormatters.getAltitudeString(0f, 0f)
         summary_used_energy_value_text.text = StringFormatters.getEnergyString(session.used_energy.toFloat())
         summary_avg_consumption_value_text.text = StringFormatters.getAvgConsumptionString(session.used_energy.toFloat(), session.driven_distance.toFloat())
         summary_travel_time_value_text.text = StringFormatters.getElapsedTimeString(session.drive_time)
@@ -412,7 +418,21 @@ class SummaryFragment() : Fragment(R.layout.fragment_summary) {
             }
         }
 
-        summary_charged_energy_value_text.text = StringFormatters.getEnergyString(completedChargingSessions[progress].charged_energy.toFloat())
+
+
+        if  ((completedChargingSessions[progress].chargingPoints?.filter { it.point_marker_type == 2}?.size?:0) > 1) {
+            summary_charged_energy_warning_text.visibility = View.VISIBLE
+        } else {
+            summary_charged_energy_warning_text.visibility = View.GONE
+        }
+
+
+        summary_charged_energy_value_text.text = String.format(
+            "%s, %d%%  →  %d%%",
+            StringFormatters.getEnergyString(completedChargingSessions[progress].charged_energy.toFloat()),
+            ((completedChargingSessions[progress].chargingPoints?.first()?.state_of_charge?:0f)*100f).roundToInt(),
+            ((completedChargingSessions[progress].chargingPoints?.last()?.state_of_charge?:0f)*100f).roundToInt()
+        )
         summary_charge_time_value_text.text = StringFormatters.getElapsedTimeString((completedChargingSessions[progress].end_epoch_time?:0) - completedChargingSessions[progress].start_epoch_time)
         summary_charge_ambient_temp.text = StringFormatters.getTemperatureString(completedChargingSessions[progress].outside_temp)
 
