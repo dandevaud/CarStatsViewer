@@ -57,7 +57,7 @@ jobs:
       - name: Sign Release
         uses: r0adkll/sign-android-release@v1
         with:
-          releaseDirectory: automotive/build/outputs/apk/stable/release
+          releaseDirectory: automotive/build/outputs/stable/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
@@ -69,6 +69,6 @@ jobs:
         with:
           serviceAccountJson: service_account.json
           packageName: ${{ vars.PACKAGE }}
-          releaseFiles: automotive/build/outputs/apk/stable/release/automotive-stable-release.aab
+          releaseFiles: automotive/build/outputs/stable/release/automotive-stable-release.aab
           track: automotive:internal
           status: draft
