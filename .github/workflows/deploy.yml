@@ -54,6 +54,12 @@ jobs:
       - name: Assemble Release Bundle
         run: |
           ./gradlew bundleRelease
+          steps:
+           - uses: actions/checkout@v2
+      - name: list files
+        uses: the-coding-turtle/ga-file-list@v0.1
+        with:
+         directory: automotive/build/outputs
       - name: Sign Release
         uses: r0adkll/sign-android-release@v1
         with:
