@@ -8,6 +8,7 @@ android {
     compileSdkVersion 33
 
     defaultConfig {
+        applicationId "com.ixam97.carStatsViewer"
         minSdkVersion 29
         targetSdkVersion 33
         versionCode 160
@@ -15,22 +16,10 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
-    flavorDimensions "version"
-    productFlavors {
-        stable {
-            dimension "version"
-            applicationId "com.ixam97.carStatsViewer"
-        }
-
-        dev {
-            dimension "version"
-            applicationId "com.ixam97.carStatsViewer_dev"
-        }
-    }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -39,7 +28,6 @@ android {
             pickFirsts += ['META-INF/LICENSE.md', 'META-INF/NOTICE.md']
         }
     }
-
 
     // android.car exists since Android 10 (API level 29) Revision 5.
     useLibrary 'android.car'

@@ -13,7 +13,7 @@ jobs:
       - name: Replace Name Space
         uses: mingjun97/file-regex-replace@v1
         with:
-           regex: 'com\.ixam97\.carStatsViewer'
+           regex: 'com\.ixam97\.carStatsViewer(_dev|Dev)?'
            replacement: '${{ vars.PACKAGE }}'
       - name: Add ABRP ApiKey
         uses: mingjun97/file-regex-replace@v1
@@ -54,16 +54,10 @@ jobs:
       - name: Assemble Release Bundle
         run: |
           ./gradlew bundleRelease
-          steps:
-           - uses: actions/checkout@v2
-      - name: list files
-        uses: the-coding-turtle/ga-file-list@v0.1
-        with:
-         directory: automotive/build/outputs
       - name: Sign Release
         uses: r0adkll/sign-android-release@v1
         with:
-          releaseDirectory: automotive/build/outputs/bundle/stable/release
+          releaseDirectory: automotive/build/outputs/bundle/release
           signingKeyBase64: ${{ secrets.SIGNING_KEY }}
           alias: ${{ secrets.ALIAS }}
           keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
@@ -75,6 +69,6 @@ jobs:
         with:
           serviceAccountJson: service_account.json
           packageName: ${{ vars.PACKAGE }}
-          releaseFiles: automotive/build/outputs/bundle/stable/release/automotive-stable-release.aab
+          releaseFiles: automotive/build/outputs/bundle/release/automotive-release.aab
           track: automotive:internal
           status: draft
