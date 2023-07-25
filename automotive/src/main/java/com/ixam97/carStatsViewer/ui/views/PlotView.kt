@@ -189,6 +189,9 @@ class PlotView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
         labelPaint = Paint(borderLinePaint)
         labelPaint.style = Paint.Style.FILL
+        CarStatsViewer.typefaceRegular?.let {
+            labelPaint.typeface = it
+        }
 
         baseLinePaint = Paint(borderLinePaint)
         baseLinePaint.color = Color.LTGRAY
@@ -858,7 +861,11 @@ class PlotView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
                 label.value,
                 xLimit + (labelPaint.textSize / 2f) + padding,
                 yStart,
-                labelPaint
+                labelPaint.apply {
+                    CarStatsViewer.typefaceRegular?.let {
+                        this.typeface = it
+                    }
+                }
             )
 
             yStart += labelPaint.textSize
@@ -1047,7 +1054,11 @@ class PlotView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
                                 paint.Plot
                             )
 
-                            canvas.drawText(label, adjustX, highlightCordYLimited + labelShiftY, paint.HighlightLabel)
+                            canvas.drawText(label, adjustX, highlightCordYLimited + labelShiftY, paint.HighlightLabel.apply {
+                                CarStatsViewer.typefaceRegular?.let {
+                                    this.typeface = it
+                                }
+                            })
                         }
                     }
                 }
