@@ -48,11 +48,11 @@ class SettingsActivity : FragmentActivity() {
 
         setContentView(R.layout.activity_settings)
 
+        setupSettingsMaster()
+
         CarStatsViewer.typefaceMedium?.let {
             applyTypeface(settings_activity)
         }
-
-        setupSettingsMaster()
     }
 
     private fun setDistractionOptimization(doOptimize: Boolean) {
