@@ -135,7 +135,7 @@ class CarStatsViewer : Application() {
         ).build()
         logDao = logDatabase.logDao()
 
-        Thread.setDefaultUncaughtExceptionHandler { t, e ->
+        Thread.setDefaultUncaughtExceptionHandler { _, e ->
 
             try {
                 setupRestartAlarm(applicationContext, "crash", 2_000, extendedLogging = true)

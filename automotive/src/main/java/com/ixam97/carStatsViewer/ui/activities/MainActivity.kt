@@ -330,8 +330,7 @@ class MainActivity : FragmentActivity() {
         setupDefaultUi()
         setUiEventListeners()
 
-        if (BuildConfig.FLAVOR != "dev") main_button_performance.visibility = View.GONE
-        else main_button_performance.setImageResource(R.drawable.ic_camera)
+        main_button_performance.setImageResource(R.drawable.ic_camera)
 
         if (appPreferences.versionString != BuildConfig.VERSION_NAME) {
 

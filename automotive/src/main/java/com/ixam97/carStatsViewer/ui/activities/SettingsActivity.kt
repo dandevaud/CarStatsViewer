@@ -127,12 +127,8 @@ class SettingsActivity : FragmentActivity() {
         }
 
         settings_version_text.setOnClickListener {
-            versionClickCounter++
-            if (versionClickCounter >= 10 || BuildConfig.FLAVOR == "dev") {
-                versionClickCounter = 0
-                startActivity(Intent(this, DebugActivity::class.java))
-                overridePendingTransition(R.anim.slide_in_up, R.anim.stay_still)
-            }
+            startActivity(Intent(this, DebugActivity::class.java))
+            overridePendingTransition(R.anim.slide_in_up, R.anim.stay_still)
         }
     }
 }
