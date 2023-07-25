@@ -80,9 +80,9 @@ abstract class LiveDataApi(
         timeout = interval
         originalInterval = interval
         return flow {
-            var delta : DeltaData? = null
+            var delta : DeltaData = DeltaData(refEpoch = System.currentTimeMillis())
             while (true) {
-                val newDelta = dataProcessor.getDrivePointDeltaBetween(delta?.refEpoch ?: System.currentTimeMillis())
+                val newDelta = dataProcessor.getDrivePointDeltaBetween(delta.refEpoch)
                 coroutineSendNow(dataProcessor.realTimeData, dataProcessor.selectedSessionDataFlow.value, newDelta)
 
                 when (connectionStatus){
