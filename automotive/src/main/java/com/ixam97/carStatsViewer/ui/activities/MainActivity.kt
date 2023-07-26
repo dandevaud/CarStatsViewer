@@ -330,10 +330,9 @@ class MainActivity : FragmentActivity() {
         setupDefaultUi()
         setUiEventListeners()
 
-        main_button_performance.setImageResource(R.drawable.ic_camera)
+        main_button_screenshot.setImageResource(R.drawable.ic_camera)
 
         if (appPreferences.versionString != BuildConfig.VERSION_NAME) {
-
             CarStatsViewer.getChangelogDialog(this).show()
             appPreferences.versionString = BuildConfig.VERSION_NAME
         }
