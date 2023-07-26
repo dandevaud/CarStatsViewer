@@ -3,6 +3,7 @@ package com.ixam97.carStatsViewer.ui.plot.graphics
 import android.graphics.Color
 import android.graphics.DashPathEffect
 import android.graphics.Paint
+import android.graphics.Typeface
 import com.ixam97.carStatsViewer.CarStatsViewer
 
 class PlotPaint(
@@ -24,6 +25,9 @@ class PlotPaint(
 ) {
     companion object {
         private val paintCache : HashMap<Int, HashMap<Float, PlotPaint>> = HashMap()
+
+        var typeface: Typeface? = null
+        var letterSpacing: Float? = null
 
         fun byColor(color : Int, textSize: Float, minMaxAlpha: Int  = 64): PlotPaint {
 
@@ -87,9 +91,11 @@ class PlotPaint(
             basePaint.strokeJoin = Paint.Join.ROUND
             basePaint.strokeCap = Paint.Cap.ROUND
             basePaint.textSize = textSize
-
-            CarStatsViewer.typefaceRegular?.let {
+            typeface?.let {
                 basePaint.typeface = it
+            }
+            letterSpacing?.let {
+                basePaint.letterSpacing = it
             }
 
             return basePaint

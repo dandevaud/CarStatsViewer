@@ -586,7 +586,7 @@ class MainActivity : FragmentActivity() {
             // DataManager.chargeTime = 0L
         }
 
-        main_button_performance.setOnClickListener {
+        main_button_screenshot.setOnClickListener {
             // throw Exception("Intentional crash")
             InAppLogger.i("Debug")
             lifecycleScope.launch {
